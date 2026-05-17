@@ -9,6 +9,8 @@ import dashboard from './_lib/dashboard'
 
 const app = new Hono<{ Bindings: Env }>()
 
+app.get('/api/ping', (c) => c.json({ ok: true }))
+
 app.use('/api/*', authMiddleware)
 
 app.route('/api/inventory/families', families)
