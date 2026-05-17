@@ -21,8 +21,9 @@ export function useScanner(onDetected: (barcode: string) => void) {
         (result, err) => {
           if (result) {
             onDetectedRef.current(result.getText())
-          } else if (err && err.name !== 'NotFoundException') {
-            setError('Error de cámara')
+          } else if (err) {
+            const expected = ['NotFoundException', 'ChecksumException', 'FormatException']
+            if (!expected.includes(err.name)) setError('Error de cámara')
           }
         }
       )
