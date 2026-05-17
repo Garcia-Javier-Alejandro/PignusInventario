@@ -37,6 +37,13 @@ families.get('/', async (c) => {
   return c.json({ families: rows.results.map(formatFamily) })
 })
 
+families.get('/:id', async (c) => {
+  const id = c.req.param('id')
+  const family = await getFamilyWithStock(c.env.DB, id)
+  if (!family) return c.json({ error: 'FAMILY_NOT_FOUND', message: 'Filament family not found' }, 404)
+  return c.json(formatFamily(family))
+})
+
 families.post('/', async (c) => {
   const body = await c.req.json()
   const { brand, material, brand_color_name, normalized_visual_color, reorder_threshold, photo_url = null, notes = null } = body

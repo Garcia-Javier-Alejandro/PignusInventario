@@ -2,9 +2,10 @@ import { useState, useRef } from 'react'
 import { useConsume } from '../../hooks/useMovements'
 import { lookupBarcode } from '../../api/barcode'
 import Scanner from '../../components/Scanner'
+import BarcodeRegistration from '../../components/BarcodeRegistration'
 import type { FilamentFamily } from '../../types'
 
-type Step = 'scanner' | 'confirm'
+type Step = 'scanner' | 'register' | 'confirm'
 
 export default function ConsumeFlow() {
   const [step, setStep] = useState<Step>('scanner')
@@ -16,6 +17,11 @@ export default function ConsumeFlow() {
   const quantityRef = useRef<HTMLInputElement>(null)
   const consume = useConsume()
 
+  const showToast = (msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3000)
+  }
+
   const handleBarcode = async (code: string) => {
     setError(null)
     setBarcode(code)
@@ -26,8 +32,16 @@ export default function ConsumeFlow() {
       setStep('confirm')
       setTimeout(() => quantityRef.current?.focus(), 50)
     } else {
-      setToast(`Código desconocido: ${code}`)
-      setTimeout(() => setToast(null), 3000)
+      setStep('register')
+    }
+  }
+
+  const handleRegistered = async () => {
+    const result = await lookupBarcode(barcode)
+    if (result.found) {
+      setFamily(result.filament_family)
+      setQuantity(1)
+      setStep('confirm')
     }
   }
 
@@ -36,8 +50,7 @@ export default function ConsumeFlow() {
     setError(null)
     try {
       await consume.mutateAsync({ barcode, quantity })
-      setToast(`✓ ${quantity} × ${family.brand} ${family.material} ${family.brand_color_name} consumido`)
-      setTimeout(() => setToast(null), 3000)
+      showToast(`✓ ${quantity} × ${family.brand} ${family.material} ${family.brand_color_name} consumido`)
       setFamily(null)
       setBarcode('')
       setQuantity(1)
@@ -57,6 +70,14 @@ export default function ConsumeFlow() {
 
       {step === 'scanner' && (
         <Scanner onDetected={handleBarcode} onClose={() => {}} />
+      )}
+
+      {step === 'register' && (
+        <BarcodeRegistration
+          barcode={barcode}
+          onRegistered={handleRegistered}
+          onClose={() => setStep('scanner')}
+        />
       )}
 
       {step === 'confirm' && family && (
@@ -86,9 +107,7 @@ export default function ConsumeFlow() {
           />
 
           <div className="flow-actions">
-            <button className="btn btn--ghost" onClick={() => setStep('scanner')}>
-              Cancelar
-            </button>
+            <button className="btn btn--ghost" onClick={() => setStep('scanner')}>Cancelar</button>
             <button
               className="btn btn--primary btn--expand"
               onClick={handleConfirm}

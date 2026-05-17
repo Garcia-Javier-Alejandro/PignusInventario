@@ -11,8 +11,6 @@ Deployment trigger
 
 This document is the authoritative technical implementation reference for the PignusInventario MVP.
 
-**Primary audience:** AI coding agents executing implementation tasks.
-
 It provides:
 - Concrete schema, API contracts, and component structure
 - Resolved architectural decisions (not open-ended options)

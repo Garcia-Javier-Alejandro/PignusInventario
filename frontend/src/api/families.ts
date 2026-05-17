@@ -28,6 +28,10 @@ export interface PatchFamilyBody {
   photo_url?: string | null
 }
 
+export function fetchFamily(id: string): Promise<FilamentFamily> {
+  return api.get(`${BASE}/${id}`)
+}
+
 export function fetchFamilies(query: FamiliesQuery = {}): Promise<{ families: FilamentFamily[] }> {
   const params = new URLSearchParams()
   if (query.search) params.set('search', query.search)

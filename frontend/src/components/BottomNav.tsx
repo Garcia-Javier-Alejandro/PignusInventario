@@ -4,8 +4,8 @@ const navItems = [
   { to: '/', label: 'Dashboard', icon: '◉' },
   { to: '/receive', label: 'Recibir', icon: '↑' },
   { to: '/consume', label: 'Consumir', icon: '↓' },
-  { to: '/families', label: 'Buscar', icon: '⊕' },
-  { to: '/admin', label: 'Admin', icon: '⚙' },
+  { to: '/families', label: 'Inventario', icon: '⊕' },
+  { to: '/movements', label: 'Historial', icon: '≡' },
 ]
 
 export default function BottomNav() {
