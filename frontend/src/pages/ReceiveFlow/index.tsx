@@ -9,6 +9,7 @@ type Step = 'scanner' | 'register' | 'confirm'
 
 export default function ReceiveFlow() {
   const [step, setStep] = useState<Step>('scanner')
+  const [detecting, setDetecting] = useState(false)
   const [family, setFamily] = useState<FilamentFamily | null>(null)
   const [barcode, setBarcode] = useState('')
   const [quantity, setQuantity] = useState(1)
@@ -22,14 +23,21 @@ export default function ReceiveFlow() {
   }
 
   const handleBarcode = async (code: string) => {
+    setDetecting(true)
     setBarcode(code)
-    const result = await lookupBarcode(code)
-    if (result.found) {
-      setFamily(result.filament_family)
-      setStep('confirm')
-      setTimeout(() => quantityRef.current?.select(), 50)
-    } else {
-      setStep('register')
+    try {
+      const result = await lookupBarcode(code)
+      if (result.found) {
+        setFamily(result.filament_family)
+        setStep('confirm')
+        setTimeout(() => quantityRef.current?.select(), 50)
+      } else {
+        setStep('register')
+      }
+    } catch {
+      showToast('Error al buscar código. Intentá de nuevo.')
+    } finally {
+      setDetecting(false)
     }
   }
 
@@ -59,7 +67,11 @@ export default function ReceiveFlow() {
 
       {toast && <div className="flow-toast">{toast}</div>}
 
-      {step === 'scanner' && (
+      {step === 'scanner' && detecting && (
+        <div className="main-loading"><span className="spinner" /></div>
+      )}
+
+      {step === 'scanner' && !detecting && (
         <Scanner onDetected={handleBarcode} onClose={() => {}} />
       )}
 
