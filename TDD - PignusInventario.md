@@ -1,3 +1,4 @@
+Deployment trigger
 # TDD — PignusInventario
 
 **Status:** Active  
