@@ -13,8 +13,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   })
   if (!res.ok) {
-    const err: ApiError = await res.json()
-    throw new ApiResponseError(err.error, err.message)
+    const text = await res.text()
+    try {
+      const err: ApiError = JSON.parse(text)
+      throw new ApiResponseError(err.error, err.message)
+    } catch {
+      throw new ApiResponseError('UNKNOWN' as ApiErrorCode, `HTTP ${res.status}: ${text.slice(0, 120)}`)
+    }
   }
   return res.json() as Promise<T>
 }
