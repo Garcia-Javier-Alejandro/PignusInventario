@@ -1,11 +1,14 @@
-import { useRef, useCallback, useState } from 'react'
+import { useRef, useCallback, useState, useEffect } from 'react'
 import { BrowserMultiFormatReader } from '@zxing/browser'
 
 export function useScanner(onDetected: (barcode: string) => void) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsRef = useRef<{ stop: () => void } | null>(null)
+  const onDetectedRef = useRef(onDetected)
   const [active, setActive] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => { onDetectedRef.current = onDetected })
 
   const start = useCallback(async () => {
     setError(null)
@@ -17,7 +20,7 @@ export function useScanner(onDetected: (barcode: string) => void) {
         videoRef.current!,
         (result, err) => {
           if (result) {
-            onDetected(result.getText())
+            onDetectedRef.current(result.getText())
           } else if (err && err.name !== 'NotFoundException') {
             setError('Error de cámara')
           }
@@ -28,7 +31,7 @@ export function useScanner(onDetected: (barcode: string) => void) {
       setError('No se pudo acceder a la cámara')
       setActive(false)
     }
-  }, [onDetected])
+  }, [])
 
   const stop = useCallback(() => {
     controlsRef.current?.stop()
