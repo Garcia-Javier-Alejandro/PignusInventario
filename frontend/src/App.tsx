@@ -11,7 +11,7 @@ import MovementHistory from './pages/MovementHistory'
 
 export default function App() {
   return (
-    <div className="app-shell">
+    <div className="pignus-app">
       <Header />
       <main className="main">
         <Routes>

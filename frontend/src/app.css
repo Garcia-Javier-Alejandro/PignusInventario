@@ -1,3 +1,16 @@
+/* Mobile app shell — replaces PignusUI .app-shell which is a desktop two-column grid */
+.pignus-app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.pignus-app .header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
 /* Bottom navigation — no PignusUI equivalent for mobile bottom nav */
 .bottom-nav {
   position: fixed;
