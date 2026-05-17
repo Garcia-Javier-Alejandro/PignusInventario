@@ -66,20 +66,23 @@ PignusPortal  <-- dashboards, analytics, admin visibility
 ```
 PignusInventario/
   frontend/
+    functions/
+      api/
+        [[catchall]].ts   <- CF Pages Function: production API entry point (handles /api/*)
     src/
     public/
     index.html
     vite.config.ts
     package.json
   worker/
-    src/
+    src/                  <- local dev only; mirrors functions/api/[[catchall]].ts logic
     wrangler.toml
     package.json
   shared/
-    types.ts          <- TypeScript types imported by both frontend and worker
+    types.ts              <- TypeScript types imported by both frontend and worker
   migrations/
     0001_initial_schema.sql
-  package.json        <- workspace root (npm workspaces)
+  package.json            <- workspace root (npm workspaces)
 ```
 
 ### PignusUI — Shared Design System
@@ -683,33 +686,40 @@ Apply optimistic UI for receive and consume flows using TanStack Query `useMutat
 
 | Resource | Name | Purpose |
 |---|---|---|
-| Worker | `pignus-inventario-api` | Backend API |
+| Pages project | `pignus-inventario` | Frontend PWA + API (via CF Pages Functions) |
 | D1 database | `pignus-inventario-db` | Authoritative data |
 | KV namespace | `INVENTARIO_CACHE` | Dashboard/projection cache |
-| Pages project | `pignus-inventario` | Frontend PWA |
+| Worker | `pignus-inventario-api` | Local development only (`wrangler dev`) |
 
-### `wrangler.toml`
+### Deployment model
 
-```toml
-name = "pignus-inventario-api"
-main = "src/worker/index.ts"
-compatibility_date = "2025-01-01"
+**CF Pages custom domains bypass standalone Worker routes.** The API runs as a CF Pages Function (`frontend/functions/api/[[catchall]].ts`), not as a separately deployed Worker. This keeps the API and frontend on the same domain with no CORS complexity.
 
-[[d1_databases]]
-binding = "DB"
-database_name = "pignus-inventario-db"
-database_id = "<fill after creation>"
-
-[[kv_namespaces]]
-binding = "CACHE"
-id = "<fill after creation>"
+```
+inventario.pignuslabs.com.ar/api/*  →  CF Pages Function (Hono app)
+inventario.pignuslabs.com.ar/*      →  CF Pages static assets (React SPA)
 ```
 
-### Deployment
+**Production deployment:** push to `main` — CF Pages builds both the Vite frontend and the Functions automatically.
 
-- **Frontend:** Cloudflare Pages, auto-deploy from `main` branch
-- **Worker:** `wrangler deploy`
-- **Schema changes:** `wrangler d1 migrations apply` — never apply DDL changes directly
+**Local development:** `wrangler dev` in `worker/` runs a standalone Worker on `localhost:8787`. Vite proxies `/api` there via `vite.config.ts`.
+
+### D1 and KV bindings
+
+Bindings for the CF Pages Function (production) are configured in the **CF Pages dashboard → Settings → Bindings**, not in `wrangler.toml`. `wrangler.toml` bindings are used by the local dev Worker only.
+
+| Binding | Type | Name/ID |
+|---|---|---|
+| `DB` | D1 | `pignus-inventario-db` |
+| `CACHE` | KV | `INVENTARIO_CACHE` |
+
+### Schema changes
+
+```
+wrangler d1 migrations apply pignus-inventario-db --remote
+```
+
+Never apply DDL directly. Migration files live in `migrations/` at the repo root.
 
 ### D1 Migration Files
 
