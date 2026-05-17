@@ -18,13 +18,8 @@ export function useScanner(onDetected: (barcode: string) => void) {
       const controls = await reader.decodeFromConstraints(
         { video: { facingMode: 'environment' } },
         videoRef.current!,
-        (result, err) => {
-          if (result) {
-            onDetectedRef.current(result.getText())
-          } else if (err) {
-            const expected = ['NotFoundException', 'ChecksumException', 'FormatException']
-            if (!expected.includes(err.name)) setError('Error de cámara')
-          }
+        (result, _err) => {
+          if (result) onDetectedRef.current(result.getText())
         }
       )
       controlsRef.current = controls
