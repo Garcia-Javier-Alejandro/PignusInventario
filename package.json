@@ -5,9 +5,6 @@
     "frontend",
     "worker"
   ],
-  "dependencies": {
-    "hono": "^4.6.0"
-  },
   "scripts": {
     "dev:frontend": "npm run dev --workspace=frontend",
     "dev:worker": "npm run dev --workspace=worker",
