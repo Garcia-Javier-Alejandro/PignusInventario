@@ -11,3 +11,7 @@ migrations_dir = "../migrations"
 [[kv_namespaces]]
 binding = "CACHE"
 id = "8e0cc2140d994ebfa4db1e47f5ed4ac2"
+
+[[routes]]
+pattern = "inventario.pignuslabs.com.ar/api/*"
+zone_name = "pignuslabs.com.ar"
