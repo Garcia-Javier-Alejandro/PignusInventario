@@ -2,13 +2,12 @@ name = "pignus-inventario-api"
 main = "src/index.ts"
 compatibility_date = "2025-01-01"
 
-migrations_dir = "../migrations"
-
 [[d1_databases]]
 binding = "DB"
 database_name = "pignus-inventario-db"
-database_id = "<fill after: wrangler d1 create pignus-inventario-db>"
+database_id = "a54a3364-529c-48c7-ad4e-f9c5afc5c04e"
+migrations_dir = "../migrations"
 
 [[kv_namespaces]]
 binding = "CACHE"
-id = "<fill after: wrangler kv namespace create INVENTARIO_CACHE>"
+id = "8e0cc2140d994ebfa4db1e47f5ed4ac2"
