@@ -1,0 +1,14 @@
+name = "pignus-inventario-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+migrations_dir = "../migrations"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pignus-inventario-db"
+database_id = "<fill after: wrangler d1 create pignus-inventario-db>"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "<fill after: wrangler kv namespace create INVENTARIO_CACHE>"
