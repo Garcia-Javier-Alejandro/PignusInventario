@@ -466,7 +466,48 @@
 
 /* Family detail */
 .detail-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
   padding: var(--space-4) 0 var(--space-2);
+}
+
+.color-pill {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-weight: var(--weight-semi);
+  font-size: var(--text-base);
+  line-height: 1.4;
+  background-clip: padding-box;
+}
+
+.color-pill--has-border {
+  box-shadow: inset 0 0 0 1px var(--border-mid);
+}
+
+.color-pill--multicolor {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Flat stat block used on filament detail (Stock actual / Umbral side by side, no card boxes) */
+.filament-stats {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+}
+
+.filament-stats__item {
+  flex: 1;
+  min-width: 0;
+}
+
+.filament-stats__divider {
+  width: 1px;
+  background: var(--border-mid);
+  align-self: stretch;
 }
 
 .detail-title {
@@ -531,6 +572,12 @@
   gap: var(--space-2);
   margin-bottom: var(--space-4);
   flex-wrap: wrap;
+}
+
+.icon-btn-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .low-stock-banner {

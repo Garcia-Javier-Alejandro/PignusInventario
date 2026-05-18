@@ -4,6 +4,7 @@ import { usePatchFamily } from '../../hooks/useFamilies'
 import { listBarcodes, registerBarcode, deleteBarcode } from '../../api/barcode'
 import ColorPalette from '../ColorPalette'
 import Scanner from '../Scanner'
+import { DeleteIcon } from '../icons'
 import { VISUAL_COLOR_LABELS } from '../../lib/visualColors'
 import type { FilamentFamily, NormalizedVisualColor } from '../../types'
 
@@ -140,11 +141,14 @@ export default function FamilyEditModal({ family, onClose }: Props) {
                 <code>{m.barcode}</code>
                 <button
                   type="button"
-                  className="btn btn--ghost btn--xs"
-                  style={{ color: 'var(--err)' }}
+                  className="iconbtn iconbtn--danger"
                   onClick={() => removeBarcode.mutate(m.barcode)}
                   disabled={removeBarcode.isPending}
-                >✕</button>
+                  aria-label="Borrar código"
+                  title="Borrar"
+                >
+                  <DeleteIcon />
+                </button>
               </div>
             ))}
             <button

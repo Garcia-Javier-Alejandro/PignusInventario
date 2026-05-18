@@ -9,8 +9,8 @@ import MovementEditModal from '../../components/MovementEditModal'
 import FamilyEditModal from '../../components/FamilyEditModal'
 import FamilyDeleteModal from '../../components/FamilyDeleteModal'
 import AlternativesList from '../../components/AlternativesList'
-import ColorDot from '../../components/ColorDot'
-import { VISUAL_COLOR_LABELS } from '../../lib/visualColors'
+import ColorPill from '../../components/ColorPill'
+import { EditIcon, DeleteIcon } from '../../components/icons'
 import type { InventoryMovement } from '../../types'
 
 const MOVEMENT_LABELS: Record<string, string> = {
@@ -42,30 +42,24 @@ export default function FamilyDetail() {
     <div className="flow-page">
       <div className="detail-header">
         <h1 className="detail-title">{family.brand} {family.material}</h1>
-        <p className="detail-subtitle">{family.brand_color_name}</p>
+        <ColorPill color={family.normalized_visual_color} label={family.brand_color_name} />
       </div>
 
-      <div className="kpi-strip">
-        <div className="kpi-card">
+      <div className="filament-stats">
+        <div className="filament-stats__item">
           <div className="kpi-card__eyebrow">Stock actual</div>
           <div className="kpi-card__value" style={{ color: family.is_low_stock ? 'var(--err)' : undefined }}>
             {family.current_quantity}
           </div>
         </div>
-        <div className="kpi-card">
+        <div className="filament-stats__divider" />
+        <div className="filament-stats__item">
           <div className="kpi-card__eyebrow">Umbral</div>
           <div className="kpi-card__value">{family.reorder_threshold}</div>
         </div>
       </div>
 
       <div className="detail-meta">
-        <div className="detail-meta__row">
-          <span>Color visual</span>
-          <span className="detail-meta__value">
-            <ColorDot color={family.normalized_visual_color} />
-            {VISUAL_COLOR_LABELS[family.normalized_visual_color]}
-          </span>
-        </div>
         <div className="detail-meta__row">
           <span>Códigos</span>
           <span className="detail-meta__value detail-meta__codes">
@@ -94,13 +88,17 @@ export default function FamilyDetail() {
 
       <div className="detail-actions">
         <button className="btn btn--secondary" onClick={() => setShowAdjust(true)}>Ajuste</button>
-        <button className="btn btn--ghost" onClick={() => setShowEdit(true)} title="Editar">✎ Editar</button>
+        <button className="btn btn--ghost icon-btn-row" onClick={() => setShowEdit(true)} title="Editar">
+          <EditIcon /> Editar
+        </button>
         <button
-          className="btn btn--ghost"
+          className="btn btn--ghost icon-btn-row"
           onClick={() => setShowDelete(true)}
           title="Borrar"
           style={{ color: 'var(--err)' }}
-        >🗑 Borrar</button>
+        >
+          <DeleteIcon /> Borrar
+        </button>
       </div>
 
       {family.is_low_stock && (
