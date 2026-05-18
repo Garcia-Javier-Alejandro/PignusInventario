@@ -50,3 +50,7 @@ export function createFamily(body: CreateFamilyBody): Promise<FilamentFamily> {
 export function patchFamily(id: string, body: PatchFamilyBody): Promise<FilamentFamily> {
   return api.patch(`${BASE}/${id}`, body)
 }
+
+export function fetchAlternatives(id: string): Promise<{ alternatives: FilamentFamily[] }> {
+  return api.get(`${BASE}/${id}/alternatives`)
+}

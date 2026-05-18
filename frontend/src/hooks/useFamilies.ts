@@ -1,11 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchFamily, fetchFamilies, createFamily, patchFamily } from '../api/families'
+import { fetchFamily, fetchFamilies, createFamily, patchFamily, fetchAlternatives } from '../api/families'
 import type { FamiliesQuery, CreateFamilyBody, PatchFamilyBody } from '../api/families'
 
 export function useFamilyById(id: string) {
   return useQuery({
     queryKey: ['families', id],
     queryFn: () => fetchFamily(id),
+  })
+}
+
+export function useAlternatives(id: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['families', id, 'alternatives'],
+    queryFn: () => fetchAlternatives(id),
+    enabled,
   })
 }
 

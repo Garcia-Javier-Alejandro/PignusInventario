@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useFamilyById, usePatchFamily } from '../../hooks/useFamilies'
 import { useMovements } from '../../hooks/useMovements'
 import ManualAdjustModal from '../../components/ManualAdjustModal'
+import AlternativesList from '../../components/AlternativesList'
 
 const MOVEMENT_LABELS: Record<string, string> = {
   RECEIVE_STOCK: 'Recibido',
@@ -60,6 +61,8 @@ export default function FamilyDetail() {
           <span> — se recomienda reabastecer</span>
         </div>
       )}
+
+      <AlternativesList sourceId={family.id} enabled={family.is_low_stock} />
 
       <div className="detail-meta">
         <div className="detail-meta__row">

@@ -44,6 +44,30 @@ families.get('/:id', async (c) => {
   return c.json(formatFamily(family))
 })
 
+families.get('/:id/alternatives', async (c) => {
+  const id = c.req.param('id')
+  const source = await c.env.DB.prepare(
+    'SELECT material, normalized_visual_color FROM filament_families WHERE id = ?'
+  ).bind(id).first<{ material: string; normalized_visual_color: string }>()
+
+  if (!source) return c.json({ error: 'FAMILY_NOT_FOUND', message: 'Filament family not found' }, 404)
+
+  const rows = await c.env.DB.prepare(`
+    SELECT f.*, COALESCE(p.current_quantity, 0) as current_quantity,
+      CASE WHEN COALESCE(p.current_quantity, 0) <= f.reorder_threshold THEN 1 ELSE 0 END as is_low_stock
+    FROM filament_families f
+    JOIN inventory_projection p ON p.filament_family_id = f.id
+    WHERE f.material = ?
+      AND f.normalized_visual_color = ?
+      AND f.id != ?
+      AND f.active = 1
+      AND p.current_quantity > 0
+    ORDER BY p.current_quantity DESC
+  `).bind(source.material, source.normalized_visual_color, id).all<FamilyRow>()
+
+  return c.json({ alternatives: rows.results.map(formatFamily) })
+})
+
 families.post('/', async (c) => {
   const body = await c.req.json()
   const { brand, material, brand_color_name, normalized_visual_color, reorder_threshold, photo_url = null, notes = null } = body
