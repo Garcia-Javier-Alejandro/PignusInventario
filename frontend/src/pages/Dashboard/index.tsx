@@ -3,6 +3,7 @@ import { useDashboard } from '../../hooks/useDashboard'
 import ImportModal from '../../components/ImportModal'
 import WipeAllModal from '../../components/WipeAllModal'
 import ColorDot from '../../components/ColorDot'
+import { formatBuildLabel, forceAppUpdate } from '../../lib/buildInfo'
 
 export default function Dashboard() {
   const { data, isLoading, isError } = useDashboard()
@@ -99,9 +100,13 @@ export default function Dashboard() {
           <button type="button" className="btn btn--secondary" onClick={() => setShowImport(true)}>
             Importar inventario inicial
           </button>
+          <button type="button" className="btn btn--secondary" onClick={forceAppUpdate}>
+            Forzar actualización
+          </button>
           <button type="button" className="btn btn--danger" onClick={() => setShowWipe(true)}>
             Borrar todo el inventario
           </button>
+          <span className="debug-status">Build: <code>{formatBuildLabel()}</code></span>
         </div>
       </details>
 
