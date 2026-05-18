@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { importInventory, type ImportRow, type ImportResponse } from '../../api/import'
-import { VISUAL_COLORS } from '../../lib/visualColors'
+import { VISUAL_COLORS, normalizeVisualColor } from '../../lib/visualColors'
 
 interface Props {
   onClose: () => void
@@ -39,7 +39,7 @@ function parseCSV(text: string): ParsedRow[] {
     if (!brand || !material || !brand_color_name) {
       return { raw, error: 'Marca, material y color son obligatorios' }
     }
-    const visual = visualRaw.toUpperCase()
+    const visual = normalizeVisualColor(visualRaw)
     if (!VALID_COLOR_SET.has(visual as never)) {
       return { raw, error: `Color visual inválido: "${visualRaw}" (valores: ${[...VALID_COLOR_SET].join(', ')})` }
     }

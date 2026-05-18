@@ -3,9 +3,20 @@ import type { Env } from './types'
 import { getUserEmail } from './auth'
 
 const VALID_COLORS = new Set([
-  'BLACK', 'WHITE', 'RED', 'ORANGE', 'YELLOW', 'GREEN',
-  'BLUE', 'PURPLE', 'PINK', 'BROWN', 'GRAY', 'TRANSLUCENT', 'MULTICOLOR',
+  'BLACK', 'WHITE', 'GRAY', 'BEIGE', 'BROWN',
+  'RED', 'ORANGE', 'YELLOW', 'GREEN', 'TEAL',
+  'BLUE', 'PURPLE', 'PINK', 'TRANSLUCENT', 'MULTICOLOR',
 ])
+
+// Spelling aliases the importer accepts but normalizes to a canonical value.
+const COLOR_ALIASES: Record<string, string> = {
+  GREY: 'GRAY',
+}
+
+function normalizeColor(input: string): string {
+  const upper = input.trim().toUpperCase()
+  return COLOR_ALIASES[upper] ?? upper
+}
 
 interface ImportRow {
   brand: string
@@ -44,7 +55,7 @@ importer.post('/', async (c) => {
     const brand = String(r.brand ?? '').trim()
     const material = String(r.material ?? '').trim()
     const colorName = String(r.brand_color_name ?? '').trim()
-    const visualColor = String(r.normalized_visual_color ?? '').trim().toUpperCase()
+    const visualColor = normalizeColor(String(r.normalized_visual_color ?? ''))
     const qty = Number.isInteger(r.initial_quantity) ? r.initial_quantity : parseInt(String(r.initial_quantity ?? '0'), 10)
     const active = r.active === false ? 0 : 1
     const threshold = Number.isInteger(r.reorder_threshold) ? r.reorder_threshold! : 3
