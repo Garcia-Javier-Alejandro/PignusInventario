@@ -13,11 +13,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   })
   if (!res.ok) {
-    const text = await res.text()
-    let parsed: ApiError | null = null
-    try { parsed = JSON.parse(text) } catch { /* not JSON */ }
-    if (parsed?.error) throw new ApiResponseError(parsed.error, parsed.message)
-    throw new ApiResponseError('UNKNOWN' as ApiErrorCode, `HTTP ${res.status}: ${text.slice(0, 200)}`)
+    const err: ApiError = await res.json()
+    throw new ApiResponseError(err.error, err.message)
   }
   return res.json() as Promise<T>
 }

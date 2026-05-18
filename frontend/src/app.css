@@ -169,17 +169,15 @@
 .flow-toast {
   position: fixed;
   top: calc(56px + var(--space-3));
-  left: var(--space-4);
-  right: var(--space-4);
-  transform: none;
+  left: 50%;
+  transform: translateX(-50%);
   background: var(--ink);
   color: var(--cream);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-pill);
   font-size: var(--text-sm);
   z-index: 300;
-  white-space: pre-wrap;
-  word-break: break-all;
+  white-space: nowrap;
 }
 
 .flow-error {
