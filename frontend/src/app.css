@@ -25,14 +25,18 @@
   min-width: 0;
 }
 
-/* Bottom navigation — Dashboard | [SCAN FAB] | Inventario.
-   The central FAB elevates above the bar; the two thumb tabs flank it. */
+/* Bottom navigation — three-column grid: Dashboard | [SCAN FAB] | Inventario.
+   Grid (not flex) so the centre column is always 80px wide and the two thumb
+   tabs always sit in their own 1fr columns. The FAB is absolutely positioned
+   inside its own centre wrapper so its location is relative to that 80px box,
+   never the whole nav. */
 .bottom-nav {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 80px 1fr;
   align-items: stretch;
   background: var(--card);
   border-top: 1px solid var(--border);
@@ -42,7 +46,6 @@
 }
 
 .bottom-nav__item {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -63,15 +66,14 @@
   font-weight: var(--weight-semi);
 }
 
-.bottom-nav__spacer {
-  width: 80px;
-  flex-shrink: 0;
+.bottom-nav__center {
+  position: relative;
 }
 
 .bottom-nav__fab {
   position: absolute;
   left: 50%;
-  bottom: calc(18px + env(safe-area-inset-bottom));
+  bottom: 4px;
   transform: translateX(-50%);
   width: 64px;
   height: 64px;
@@ -1316,9 +1318,18 @@
 
 .debug-body {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
   gap: var(--space-2);
   padding-top: var(--space-3);
+}
+
+.debug-body .btn {
+  width: 100%;
+}
+
+.debug-body .debug-status {
+  margin-top: var(--space-2);
 }
 
 .debug-status {

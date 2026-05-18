@@ -46,8 +46,17 @@ export default function BottomNav() {
         <span className="bottom-nav__label">Dashboard</span>
       </NavLink>
 
-      {/* spacer for FAB */}
-      <span className="bottom-nav__spacer" aria-hidden="true" />
+      <div className="bottom-nav__center">
+        <button
+          type="button"
+          className="bottom-nav__fab"
+          onClick={() => navigate('/scan')}
+          aria-label="Escanear código"
+        >
+          <ScanIcon />
+          <span className="bottom-nav__fab-label">SCAN</span>
+        </button>
+      </div>
 
       <NavLink
         to="/families"
@@ -56,16 +65,6 @@ export default function BottomNav() {
         <InventoryIcon />
         <span className="bottom-nav__label">Inventario</span>
       </NavLink>
-
-      <button
-        type="button"
-        className="bottom-nav__fab"
-        onClick={() => navigate('/scan')}
-        aria-label="Escanear código"
-      >
-        <ScanIcon />
-        <span className="bottom-nav__fab-label">SCAN</span>
-      </button>
     </nav>
   )
 }
