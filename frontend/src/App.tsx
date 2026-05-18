@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import Header from './components/Header'
-import BottomNav from './components/BottomNav'
+import PageTabs from './components/PageTabs'
+import Footer from './components/Footer'
 import Dashboard from './pages/Dashboard'
 import ReceiveFlow from './pages/ReceiveFlow'
 import ConsumeFlow from './pages/ConsumeFlow'
@@ -13,6 +14,7 @@ export default function App() {
   return (
     <div className="pignus-app">
       <Header />
+      <PageTabs />
       <main className="main">
         <Routes>
           <Route path="/" element={<Dashboard />} />
@@ -24,7 +26,7 @@ export default function App() {
           <Route path="/movements" element={<MovementHistory />} />
         </Routes>
       </main>
-      <BottomNav />
+      <Footer />
     </div>
   )
 }

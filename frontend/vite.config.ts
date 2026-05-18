@@ -14,7 +14,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'],
+      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'PignusLabs_Logo.png'],
       manifest: {
         name: 'PignusInventario',
         short_name: 'Inventario',
