@@ -32,10 +32,10 @@ function parseCSV(text: string): ParsedRow[] {
 
   return dataLines.map((line): ParsedRow => {
     const raw = line.split(delim).map((s) => s.trim())
-    if (raw.length < 5) {
-      return { raw, error: `Esperaba 5-6 columnas, encontré ${raw.length}` }
+    if (raw.length < 6) {
+      return { raw, error: `Esperaba 6-7 columnas, encontré ${raw.length}` }
     }
-    const [brand, material, brand_color_name, visualRaw, qtyRaw, activeRaw = 'TRUE'] = raw
+    const [brand, material, brand_color_name, visualRaw, qtyRaw, thresholdRaw, activeRaw = 'TRUE'] = raw
     if (!brand || !material || !brand_color_name) {
       return { raw, error: 'Marca, material y color son obligatorios' }
     }
@@ -47,6 +47,10 @@ function parseCSV(text: string): ParsedRow[] {
     if (!Number.isFinite(qty) || qty < 0) {
       return { raw, error: `Cantidad inválida: "${qtyRaw}"` }
     }
+    const threshold = parseInt(thresholdRaw, 10)
+    if (!Number.isFinite(threshold) || threshold < 0) {
+      return { raw, error: `Umbral inválido: "${thresholdRaw}"` }
+    }
     return {
       raw,
       row: {
@@ -55,6 +59,7 @@ function parseCSV(text: string): ParsedRow[] {
         brand_color_name,
         normalized_visual_color: visual,
         initial_quantity: qty,
+        reorder_threshold: threshold,
         active: parseActive(activeRaw),
       },
     }
@@ -101,7 +106,7 @@ export default function ImportModal({ onClose }: Props) {
         {!response && (
           <>
             <p className="modal-hint">
-              Pegá filas de tu planilla con 6 columnas: <strong>Marca · Material · Color · Color visual · Cantidad · Activo</strong>.
+              Pegá filas de tu planilla con 7 columnas: <strong>Marca · Material · Color · Color visual · Cantidad · Umbral · Activo</strong>.
               Color visual debe ser uno de: {VISUAL_COLORS.map((c) => c.value).join(', ')}.
               Aceptado: pestañas o comas.
             </p>
@@ -110,7 +115,7 @@ export default function ImportModal({ onClose }: Props) {
               value={text}
               onChange={(e) => setText(e.target.value)}
               rows={8}
-              placeholder={'Grilon\tPLA\tFucsia\tPINK\t10\tTRUE\nGrilon\tPLA\tRojo\tRED\t3\tTRUE'}
+              placeholder={'Grilon\tPLA\tFucsia\tPINK\t10\t3\tTRUE\nGrilon\tPLA\tRojo\tRED\t3\t2\tTRUE'}
               style={{ width: '100%', fontFamily: 'var(--font-mono, monospace)', fontSize: 'var(--text-sm)' }}
             />
 
@@ -132,7 +137,7 @@ export default function ImportModal({ onClose }: Props) {
               <div className="table-wrap" style={{ marginTop: 'var(--space-3)' }}>
                 <table className="orders-table">
                   <thead>
-                    <tr><th>#</th><th>Filamento</th><th>Color</th><th>Qty</th><th>Activo</th><th>Estado</th></tr>
+                    <tr><th>#</th><th>Filamento</th><th>Color</th><th>Qty</th><th>Umbral</th><th>Activo</th><th>Estado</th></tr>
                   </thead>
                   <tbody>
                     {parsed.map((p, i) => (
@@ -141,6 +146,7 @@ export default function ImportModal({ onClose }: Props) {
                         <td>{p.row ? `${p.row.brand} ${p.row.material} ${p.row.brand_color_name}` : p.raw.slice(0, 3).join(' ')}</td>
                         <td>{p.row?.normalized_visual_color ?? p.raw[3] ?? '—'}</td>
                         <td>{p.row?.initial_quantity ?? p.raw[4] ?? '—'}</td>
+                        <td>{p.row?.reorder_threshold ?? p.raw[5] ?? '—'}</td>
                         <td>{p.row ? (p.row.active ? 'Sí' : 'No') : '—'}</td>
                         <td>
                           {p.row
