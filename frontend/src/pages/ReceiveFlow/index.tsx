@@ -62,7 +62,7 @@ export default function ReceiveFlow() {
   return (
     <div className="flow-page">
       <div className="toolbar">
-        <span className="toolbar-left">Recibir mercadería</span>
+        <span className="toolbar-left">Ingresar mercadería</span>
       </div>
 
       {toast && <div className="flow-toast">{toast}</div>}

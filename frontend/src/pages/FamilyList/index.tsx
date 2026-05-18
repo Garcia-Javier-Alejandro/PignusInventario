@@ -44,7 +44,6 @@ export default function FamilyList() {
     }
   }
 
-  const sortArrow = (key: SortKey) => (sortBy === key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '')
   const sortableClass = (key: SortKey) => `th--sortable${sortBy === key ? (sortDir === 'asc' ? ' th--sort-asc' : ' th--sort-desc') : ''}`
 
   return (
@@ -66,12 +65,12 @@ export default function FamilyList() {
             <thead>
               <tr>
                 <th className={sortableClass('color')} onClick={() => toggleSort('color')} title="Ordenar por color">
-                  <ColorDot color="MULTICOLOR" />{sortArrow('color')}
+                  <ColorDot color="MULTICOLOR" />
                 </th>
-                <th className={sortableClass('name')} onClick={() => toggleSort('name')}>Filamento{sortArrow('name')}</th>
-                <th className={sortableClass('stock')} onClick={() => toggleSort('stock')}>Stock{sortArrow('stock')}</th>
-                <th className={sortableClass('threshold')} onClick={() => toggleSort('threshold')}>Umbral{sortArrow('threshold')}</th>
-                <th className={sortableClass('active')} onClick={() => toggleSort('active')}>Activo{sortArrow('active')}</th>
+                <th className={sortableClass('name')} onClick={() => toggleSort('name')}>Filamento</th>
+                <th className={sortableClass('stock')} onClick={() => toggleSort('stock')}>Stock</th>
+                <th className={sortableClass('threshold')} onClick={() => toggleSort('threshold')}>Umbral</th>
+                <th className={sortableClass('active')} onClick={() => toggleSort('active')}>Activo</th>
               </tr>
             </thead>
             <tbody>

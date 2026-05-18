@@ -235,13 +235,22 @@
   min-width: 0;
 }
 
-.orders-table th.th--sortable {
-  cursor: pointer;
-  user-select: none;
+/* Allow the two-line filamento label inside a td to wrap. PignusUI's
+   .orders-table td defaults to white-space: nowrap which would otherwise
+   stretch the row for any multi-word color name. */
+.orders-table .family-name,
+.orders-table .family-color {
+  white-space: normal;
 }
 
-.orders-table th.th--sortable:hover {
-  color: var(--blue);
+/* Mobile: trim cell padding so the inventory/dashboard/history tables fit
+   the viewport without horizontal scroll. */
+@media (max-width: 640px) {
+  .orders-table th,
+  .orders-table td {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+  }
 }
 
 .filter-divider {

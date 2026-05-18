@@ -1,14 +1,63 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useDashboard } from '../../hooks/useDashboard'
 import ImportModal from '../../components/ImportModal'
 import WipeAllModal from '../../components/WipeAllModal'
 import ColorDot from '../../components/ColorDot'
 import { formatBuildLabel, forceAppUpdate } from '../../lib/buildInfo'
+import type { FilamentFamily, InventoryMovement } from '../../types'
+
+type LowStockKey = 'color' | 'name' | 'stock' | 'threshold'
+type ActivityKey = 'color' | 'name' | 'action' | 'delta'
+
+const LOW_STOCK_CMP: Record<LowStockKey, (a: FilamentFamily, b: FilamentFamily) => number> = {
+  color: (a, b) => a.normalized_visual_color.localeCompare(b.normalized_visual_color),
+  name: (a, b) =>
+    a.brand.localeCompare(b.brand) ||
+    a.material.localeCompare(b.material) ||
+    a.brand_color_name.localeCompare(b.brand_color_name),
+  stock: (a, b) => a.current_quantity - b.current_quantity,
+  threshold: (a, b) => a.reorder_threshold - b.reorder_threshold,
+}
+
+const ACTIVITY_CMP: Record<ActivityKey, (a: InventoryMovement, b: InventoryMovement) => number> = {
+  color: (a, b) => (a.normalized_visual_color ?? '').localeCompare(b.normalized_visual_color ?? ''),
+  name: (a, b) =>
+    (a.brand ?? '').localeCompare(b.brand ?? '') ||
+    (a.material ?? '').localeCompare(b.material ?? '') ||
+    (a.brand_color_name ?? '').localeCompare(b.brand_color_name ?? ''),
+  action: (a, b) => a.movement_type.localeCompare(b.movement_type),
+  delta: (a, b) => a.quantity_delta - b.quantity_delta,
+}
 
 export default function Dashboard() {
   const { data, isLoading, isError } = useDashboard()
   const [showImport, setShowImport] = useState(false)
   const [showWipe, setShowWipe] = useState(false)
+
+  const [lsSort, setLsSort] = useState<{ key: LowStockKey | null; dir: 'asc' | 'desc' }>({ key: null, dir: 'asc' })
+  const [actSort, setActSort] = useState<{ key: ActivityKey | null; dir: 'asc' | 'desc' }>({ key: null, dir: 'asc' })
+
+  const sortedLowStock = useMemo(() => {
+    if (!data || !lsSort.key) return data?.low_stock
+    const arr = [...data.low_stock].sort(LOW_STOCK_CMP[lsSort.key])
+    return lsSort.dir === 'desc' ? arr.reverse() : arr
+  }, [data, lsSort])
+
+  const sortedActivity = useMemo(() => {
+    if (!data || !actSort.key) return data?.recent_movements
+    const arr = [...data.recent_movements].sort(ACTIVITY_CMP[actSort.key])
+    return actSort.dir === 'desc' ? arr.reverse() : arr
+  }, [data, actSort])
+
+  const toggleLs = (key: LowStockKey) =>
+    setLsSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }))
+  const toggleAct = (key: ActivityKey) =>
+    setActSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }))
+
+  const lsThClass = (key: LowStockKey) =>
+    `th--sortable${lsSort.key === key ? (lsSort.dir === 'asc' ? ' th--sort-asc' : ' th--sort-desc') : ''}`
+  const actThClass = (key: ActivityKey) =>
+    `th--sortable${actSort.key === key ? (actSort.dir === 'asc' ? ' th--sort-asc' : ' th--sort-desc') : ''}`
 
   if (isLoading) return <div className="main-loading"><span className="spinner" /></div>
   if (isError) return <div className="main-error">Error al cargar el dashboard</div>
@@ -28,24 +77,27 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {data && data.low_stock.length > 0 && (
+      {sortedLowStock && sortedLowStock.length > 0 && (
         <section className="dashboard-section">
           <h2 className="dashboard-section__title">Insumos con stock bajo</h2>
           <div className="table-wrap">
             <table className="orders-table">
               <thead>
                 <tr>
-                  <th></th>
-                  <th>Filamento</th>
-                  <th>Stock</th>
-                  <th>Umbral</th>
+                  <th className={lsThClass('color')} onClick={() => toggleLs('color')}><ColorDot color="MULTICOLOR" /></th>
+                  <th className={lsThClass('name')} onClick={() => toggleLs('name')}>Filamento</th>
+                  <th className={lsThClass('stock')} onClick={() => toggleLs('stock')}>Stock</th>
+                  <th className={lsThClass('threshold')} onClick={() => toggleLs('threshold')}>Umbral</th>
                 </tr>
               </thead>
               <tbody>
-                {data.low_stock.map((f) => (
+                {sortedLowStock.map((f) => (
                   <tr key={f.id}>
                     <td><ColorDot color={f.normalized_visual_color} /></td>
-                    <td>{f.brand} {f.material} {f.brand_color_name}</td>
+                    <td>
+                      <div className="family-name">{f.brand} {f.material}</div>
+                      <div className="family-color">{f.brand_color_name}</div>
+                    </td>
                     <td style={{ color: 'var(--err)', fontWeight: 'var(--weight-semi)' }}>
                       {f.current_quantity}
                     </td>
@@ -58,24 +110,27 @@ export default function Dashboard() {
         </section>
       )}
 
-      {data && data.recent_movements.length > 0 && (
+      {sortedActivity && sortedActivity.length > 0 && (
         <section className="dashboard-section">
           <h2 className="dashboard-section__title">Actividad reciente</h2>
           <div className="table-wrap">
             <table className="orders-table">
               <thead>
                 <tr>
-                  <th></th>
-                  <th>Filamento</th>
-                  <th>Acción</th>
-                  <th>Δ</th>
+                  <th className={actThClass('color')} onClick={() => toggleAct('color')}><ColorDot color="MULTICOLOR" /></th>
+                  <th className={actThClass('name')} onClick={() => toggleAct('name')}>Filamento</th>
+                  <th className={actThClass('action')} onClick={() => toggleAct('action')}>Acción</th>
+                  <th className={actThClass('delta')} onClick={() => toggleAct('delta')}>Δ</th>
                 </tr>
               </thead>
               <tbody>
-                {data.recent_movements.map((m) => (
+                {sortedActivity.map((m) => (
                   <tr key={m.id}>
                     <td><ColorDot color={m.normalized_visual_color} /></td>
-                    <td>{m.brand} {m.material} {m.brand_color_name}</td>
+                    <td>
+                      <div className="family-name">{m.brand} {m.material}</div>
+                      <div className="family-color">{m.brand_color_name}</div>
+                    </td>
                     <td>
                       <span className={`pill ${m.movement_type === 'RECEIVE_STOCK' ? 'pill--ok' : m.movement_type === 'CONSUME_OPEN' ? 'pill--pending' : ''}`}>
                         {m.movement_type === 'RECEIVE_STOCK' ? 'Recibido' : m.movement_type === 'CONSUME_OPEN' ? 'Consumido' : 'Ajuste'}
