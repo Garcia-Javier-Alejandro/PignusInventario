@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { usePatchFamily } from '../../hooks/useFamilies'
 import { listBarcodes, registerBarcode, deleteBarcode } from '../../api/barcode'
 import ColorPalette from '../ColorPalette'
+import Scanner from '../Scanner'
 import { VISUAL_COLOR_LABELS } from '../../lib/visualColors'
 import type { FilamentFamily, NormalizedVisualColor } from '../../types'
 
@@ -21,7 +22,7 @@ export default function FamilyEditModal({ family, onClose }: Props) {
   const [visualColor, setVisualColor] = useState<NormalizedVisualColor>(family.normalized_visual_color)
   const [reorder_threshold, setThreshold] = useState(family.reorder_threshold)
   const [notes, setNotes] = useState(family.notes ?? '')
-  const [newBarcode, setNewBarcode] = useState('')
+  const [scanning, setScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const { data: barcodesData } = useQuery({ queryKey: ['barcodes'], queryFn: listBarcodes })
@@ -29,7 +30,7 @@ export default function FamilyEditModal({ family, onClose }: Props) {
 
   const addBarcode = useMutation({
     mutationFn: (code: string) => registerBarcode(code, family.id),
-    onSuccess: () => { setNewBarcode(''); qc.invalidateQueries({ queryKey: ['barcodes'] }) },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['barcodes'] }),
     onError: (e: unknown) => setError(e instanceof Error ? e.message : 'Error al agregar código'),
   })
 
@@ -71,11 +72,12 @@ export default function FamilyEditModal({ family, onClose }: Props) {
     }
   }
 
-  const handleAddBarcode = () => {
-    const code = newBarcode.trim()
-    if (!code) return
+  const handleScanned = (code: string) => {
+    setScanning(false)
+    const trimmed = code.trim()
+    if (!trimmed) return
     setError(null)
-    addBarcode.mutate(code)
+    addBarcode.mutate(trimmed)
   }
 
   return (
@@ -145,22 +147,15 @@ export default function FamilyEditModal({ family, onClose }: Props) {
                 >✕</button>
               </div>
             ))}
-            <div className="barcode-add-row">
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="Nuevo código de barras"
-                value={newBarcode}
-                onChange={(e) => setNewBarcode(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddBarcode() } }}
-              />
-              <button
-                type="button"
-                className="btn btn--secondary btn--xs"
-                onClick={handleAddBarcode}
-                disabled={addBarcode.isPending || !newBarcode.trim()}
-              >+ Agregar</button>
-            </div>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => { setError(null); setScanning(true) }}
+              disabled={addBarcode.isPending}
+              style={{ marginTop: 'var(--space-2)' }}
+            >
+              {addBarcode.isPending ? <span className="spinner" /> : '+ Escanear código'}
+            </button>
           </div>
 
           {diff.length > 0 && (
@@ -188,6 +183,10 @@ export default function FamilyEditModal({ family, onClose }: Props) {
           </div>
         </form>
       </div>
+
+      {scanning && (
+        <Scanner onDetected={handleScanned} onClose={() => setScanning(false)} />
+      )}
     </div>
   )
 }

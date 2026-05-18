@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useFamilyById, usePatchFamily } from '../../hooks/useFamilies'
 import { useMovements } from '../../hooks/useMovements'
+import { listBarcodes } from '../../api/barcode'
 import ManualAdjustModal from '../../components/ManualAdjustModal'
 import MovementEditModal from '../../components/MovementEditModal'
 import FamilyEditModal from '../../components/FamilyEditModal'
 import FamilyDeleteModal from '../../components/FamilyDeleteModal'
 import AlternativesList from '../../components/AlternativesList'
+import ColorDot from '../../components/ColorDot'
+import { VISUAL_COLOR_LABELS } from '../../lib/visualColors'
 import type { InventoryMovement } from '../../types'
 
 const MOVEMENT_LABELS: Record<string, string> = {
@@ -25,30 +29,20 @@ export default function FamilyDetail() {
 
   const { data: family, isLoading } = useFamilyById(id!)
   const { data: movementsData } = useMovements({ filament_family_id: id, limit: 20 })
+  const { data: barcodesData } = useQuery({ queryKey: ['barcodes'], queryFn: listBarcodes })
   const patch = usePatchFamily()
 
   if (isLoading) return <div className="main-loading"><span className="spinner" /></div>
   if (!family) return <div className="main-error">Filamento no encontrado</div>
 
+  const familyBarcodes = barcodesData?.mappings.filter((m) => m.filament_family_id === family.id) ?? []
   const toggleActive = () => patch.mutate({ id: family.id, body: { active: !family.active } })
 
   return (
     <div className="flow-page">
-      <div className="toolbar">
-        <span className="toolbar-left">
-          <button className="btn btn--ghost btn--xs" onClick={() => navigate('/families')}>← Volver</button>
-        </span>
-        <span className="toolbar-right">
-          <button className="btn btn--ghost btn--xs" onClick={() => setShowAdjust(true)}>Ajuste</button>
-          <button className="iconbtn" onClick={() => setShowEdit(true)} aria-label="Editar" title="Editar">✎</button>
-          <button className="iconbtn iconbtn--danger" onClick={() => setShowDelete(true)} aria-label="Borrar" title="Borrar">🗑</button>
-        </span>
-      </div>
-
       <div className="detail-header">
         <h1 className="detail-title">{family.brand} {family.material}</h1>
         <p className="detail-subtitle">{family.brand_color_name}</p>
-        <p className="detail-color-tag">{family.normalized_visual_color}</p>
       </div>
 
       <div className="kpi-strip">
@@ -64,6 +58,51 @@ export default function FamilyDetail() {
         </div>
       </div>
 
+      <div className="detail-meta">
+        <div className="detail-meta__row">
+          <span>Color visual</span>
+          <span className="detail-meta__value">
+            <ColorDot color={family.normalized_visual_color} />
+            {VISUAL_COLOR_LABELS[family.normalized_visual_color]}
+          </span>
+        </div>
+        <div className="detail-meta__row">
+          <span>Códigos</span>
+          <span className="detail-meta__value detail-meta__codes">
+            {familyBarcodes.length === 0
+              ? <span style={{ color: 'var(--ink-3)' }}>Ninguno</span>
+              : familyBarcodes.map((b) => <code key={b.barcode}>{b.barcode}</code>)}
+          </span>
+        </div>
+        <div className="detail-meta__row">
+          <span>Activo</span>
+          <button
+            className={`pill ${family.active ? 'pill--ok' : ''}`}
+            onClick={toggleActive}
+            style={{ cursor: 'pointer', border: 'none' }}
+          >
+            {family.active ? 'Sí' : 'No'}
+          </button>
+        </div>
+        {family.notes && (
+          <div className="detail-meta__row">
+            <span>Notas</span>
+            <span className="detail-meta__value">{family.notes}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="detail-actions">
+        <button className="btn btn--secondary" onClick={() => setShowAdjust(true)}>Ajuste</button>
+        <button className="btn btn--ghost" onClick={() => setShowEdit(true)} title="Editar">✎ Editar</button>
+        <button
+          className="btn btn--ghost"
+          onClick={() => setShowDelete(true)}
+          title="Borrar"
+          style={{ color: 'var(--err)' }}
+        >🗑 Borrar</button>
+      </div>
+
       {family.is_low_stock && (
         <div className="low-stock-banner">
           <span className="pill pill--pending">Stock bajo</span>
@@ -72,21 +111,6 @@ export default function FamilyDetail() {
       )}
 
       <AlternativesList sourceId={family.id} enabled={family.is_low_stock} />
-
-      <div className="detail-meta">
-        <div className="detail-meta__row">
-          <span>Activo</span>
-          <button className={`pill ${family.active ? 'pill--ok' : ''}`} onClick={toggleActive} style={{ cursor: 'pointer', border: 'none', background: 'none' }}>
-            {family.active ? 'Sí' : 'No'}
-          </button>
-        </div>
-        {family.notes && (
-          <div className="detail-meta__row">
-            <span>Notas</span>
-            <span>{family.notes}</span>
-          </div>
-        )}
-      </div>
 
       <section className="dashboard-section">
         <h2 className="dashboard-section__title">Movimientos recientes</h2>

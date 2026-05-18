@@ -37,8 +37,17 @@ export default function BarcodeRegistration({ barcode, onRegistered, onClose }: 
           <button className="iconbtn" onClick={onClose} aria-label="Cerrar">✕</button>
         </div>
 
-        <p className="modal-code"><code>{barcode}</code></p>
-        <p className="modal-hint">Asociar a un filamento existente o crear uno nuevo</p>
+        <div className="barcode-reg-headline">
+          <code className="barcode-reg-code">{barcode}</code>
+          <button
+            className="btn btn--primary"
+            onClick={() => navigate(`/families/new?barcode=${encodeURIComponent(barcode)}`)}
+          >
+            + Crear nuevo filamento
+          </button>
+        </div>
+
+        <p className="modal-hint">…o asociar a un filamento existente</p>
 
         <input
           type="search"
@@ -63,13 +72,6 @@ export default function BarcodeRegistration({ barcode, onRegistered, onClose }: 
             </button>
           ))}
         </div>
-
-        <button
-          className="btn btn--secondary btn--expand"
-          onClick={() => navigate(`/families/new?barcode=${encodeURIComponent(barcode)}`)}
-        >
-          + Crear nuevo filamento
-        </button>
       </div>
     </div>
   )
