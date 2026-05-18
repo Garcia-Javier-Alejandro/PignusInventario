@@ -1,10 +1,10 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Header from './components/Header'
-import DomainNav from './components/DomainNav'
 import BottomNav from './components/BottomNav'
 import Dashboard from './pages/Dashboard'
 import ReceiveFlow from './pages/ReceiveFlow'
 import ConsumeFlow from './pages/ConsumeFlow'
+import ScanIntakeFlow from './pages/ScanIntakeFlow'
 import FamilyList from './pages/FamilyList'
 import FamilyCreate from './pages/FamilyCreate'
 import FamilyDetail from './pages/FamilyDetail'
@@ -19,10 +19,10 @@ export default function App() {
   return (
     <div className="pignus-app">
       <Header />
-      <DomainNav />
       <main className="main">
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/scan" element={<ScanIntakeFlow />} />
           <Route path="/receive" element={<ReceiveFlow />} />
           <Route path="/consume" element={<ConsumeFlow />} />
           <Route path="/families" element={<FamilyList />} />

@@ -5,13 +5,11 @@ import { useFamilyById, usePatchFamily } from '../../hooks/useFamilies'
 import { useMovements } from '../../hooks/useMovements'
 import { listBarcodes } from '../../api/barcode'
 import ManualAdjustModal from '../../components/ManualAdjustModal'
-import MovementEditModal from '../../components/MovementEditModal'
 import FamilyEditModal from '../../components/FamilyEditModal'
 import FamilyDeleteModal from '../../components/FamilyDeleteModal'
 import AlternativesList from '../../components/AlternativesList'
 import ColorPill from '../../components/ColorPill'
 import { EditIcon, DeleteIcon } from '../../components/icons'
-import type { InventoryMovement } from '../../types'
 
 const MOVEMENT_LABELS: Record<string, string> = {
   RECEIVE_STOCK: 'Recibido',
@@ -25,7 +23,6 @@ export default function FamilyDetail() {
   const [showAdjust, setShowAdjust] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
-  const [editMovement, setEditMovement] = useState<InventoryMovement | null>(null)
 
   const { data: family, isLoading } = useFamilyById(id!)
   const { data: movementsData } = useMovements({ filament_family_id: id, limit: 20 })
@@ -127,7 +124,7 @@ export default function FamilyDetail() {
           <div className="table-wrap">
             <table className="orders-table">
               <thead>
-                <tr><th>Tipo</th><th>Δ</th><th>Notas</th><th>Fecha</th><th></th></tr>
+                <tr><th>Tipo</th><th>Δ</th><th>Notas</th><th>Fecha</th></tr>
               </thead>
               <tbody>
                 {movementsData.movements.map((m) => (
@@ -142,9 +139,6 @@ export default function FamilyDetail() {
                     </td>
                     <td className="cell-truncate">{m.notes ?? '—'}</td>
                     <td>{new Date(m.created_at).toLocaleDateString('es-AR')}</td>
-                    <td>
-                      <button className="btn btn--ghost btn--xs" onClick={() => setEditMovement(m)}>Editar</button>
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -155,13 +149,6 @@ export default function FamilyDetail() {
 
       {showAdjust && (
         <ManualAdjustModal family={family} onClose={() => setShowAdjust(false)} />
-      )}
-
-      {editMovement && (
-        <MovementEditModal
-          movement={{ ...editMovement, brand: family.brand, material: family.material, brand_color_name: family.brand_color_name }}
-          onClose={() => setEditMovement(null)}
-        />
       )}
 
       {showEdit && (

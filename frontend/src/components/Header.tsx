@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import DomainChip from './DomainChip'
 
 function initialsFromEmail(email: string): string {
   const local = email.split('@')[0]
@@ -25,7 +26,7 @@ export default function Header() {
         if (cancelled || !data?.email) return
         setIdentity({ email: data.email, initials: initialsFromEmail(data.email) })
       })
-      .catch(() => { /* ignore — running without CF Access locally */ })
+      .catch(() => { /* local dev — CF Access not available */ })
     return () => { cancelled = true }
   }, [])
 
@@ -39,7 +40,10 @@ export default function Header() {
           <img src="/PignusLabs_Logo.png" alt="Pignus Labs" className="header__logo" />
         </a>
         <div className="header__rule" />
-        <span className="header__wordmark">Inventario</span>
+        <div className="header__brand-text">
+          <div className="header__wordmark">Inventario</div>
+          <DomainChip />
+        </div>
       </div>
 
       <nav className="mod-nav">
