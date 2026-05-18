@@ -1,8 +1,7 @@
-Deployment trigger
 # TDD — PignusInventario
 
 **Status:** Active  
-**Last updated:** 2026-05-17  
+**Last updated:** 2026-05-18  
 **Companion document:** `PRD - PignusInventario.md`
 
 ---
@@ -24,7 +23,7 @@ Intentionally deferred items are listed in [Section 16](#16-open-questions).
 
 ## 2. System Overview
 
-**Type:** Internal operational inventory service (PWA + Cloudflare Worker + D1)  
+**Type:** Internal operational inventory service (PWA + Cloudflare Pages Functions + D1)  
 **Primary responsibility:** Track unopened filament inventory through low-friction barcode-assisted workflows  
 **URL:** `inventario.pignuslabs.com.ar`  
 **Auth:** Cloudflare Access (Google, same as other PignusLabs apps)
@@ -37,7 +36,7 @@ PignusPortal  <-- dashboards, analytics, admin visibility
      +-- auth layer (Cloudflare Access / Google)
            |
            v
-   PignusInventario  <-- this service
+   PignusInventario (Pages project: pignusinventario)
            |
            +-- D1 (authoritative inventory data)
 ```
@@ -51,11 +50,11 @@ PignusPortal  <-- dashboards, analytics, admin visibility
 | Layer | Choice | Notes |
 |---|---|---|
 | Frontend | React + TypeScript | Vite build, PWA |
-| Backend | Cloudflare Workers + Hono | Single Worker, REST API |
+| Backend | Cloudflare Pages Functions + Hono | API runs as a Pages Function at `frontend/functions/api/[[catchall]].ts` — no standalone Worker |
 | Database | Cloudflare D1 | SQLite; sole authoritative store |
 | Cache | Cloudflare KV | Dashboard/projection cache only — never authoritative |
-| Email | Resend | Daily digests only |
-| Barcode scanning | `@zxing/browser` | Browser camera API |
+| Email | Resend | Daily digests only (requires a separate Worker for cron — see §13) |
+| Barcode scanning | Native `BarcodeDetector` API, with `@zxing/library` canvas fallback | Implemented in `src/hooks/useScanner.ts` |
 | Server state | TanStack Query (React Query) | No Redux or Zustand |
 | Frontend routing | React Router v6 | |
 | Styling | PignusUI (`pignus.css`) + thin `app.css` | Via CDN `<link>` tag |
@@ -67,22 +66,24 @@ PignusInventario/
   frontend/
     functions/
       api/
-        [[catchall]].ts   <- CF Pages Function: production API entry point (handles /api/*)
-    src/
+        [[catchall]].ts   <- CF Pages Function: API entry point (handles /api/*)
+        _lib/             <- per-resource Hono routers + helpers
+          auth.ts, db.ts, families.ts, barcode.ts,
+          movements.ts, dashboard.ts, types.ts
+    src/                  <- React app
     public/
+      _routes.json        <- explicit include for /api/* (see README)
     index.html
     vite.config.ts
-    package.json
-  worker/
-    src/                  <- local dev only; mirrors functions/api/[[catchall]].ts logic
-    wrangler.toml
-    package.json
+    package.json          <- hono lives here
   shared/
-    types.ts              <- TypeScript types imported by both frontend and worker
+    types.ts              <- TypeScript types shared with the frontend
   migrations/
     0001_initial_schema.sql
-  package.json            <- workspace root (npm workspaces)
+  package.json            <- workspace root (npm workspaces: ["frontend"])
 ```
+
+There is **no** `worker/` directory and no separate Worker workspace. The same `frontend/functions/` code serves both production (deployed by Pages on push) and local development (via `wrangler pages dev`).
 
 ### PignusUI — Shared Design System
 
@@ -135,7 +136,7 @@ PignusInventario **must** use PignusUI for all visual styling. This is non-negot
 
 ### Resolved Stack Decisions
 
-**Worker routing:** Hono. Use Express-style route definitions and middleware. Auth email middleware runs on every route via `app.use`.
+**Functions routing:** Hono mounted in `frontend/functions/api/[[catchall]].ts` and re-exported via `handle(app)` from `hono/cloudflare-pages`. Per-resource sub-routers live in `_lib/`. Auth middleware runs on every `/api/*` route via `app.use`.
 
 **Frontend state management:** TanStack Query for all server state (inventory, families, movements). Local React state only for ephemeral UI state (modal open, scanner active). No global state manager needed at this scope.
 
@@ -165,23 +166,23 @@ Authentication is handled entirely by Cloudflare Access — the same setup used 
 
 ```
 User -> Google login -> Cloudflare Access (edge)
-     -> authenticated request forwarded to Worker/Pages
+     -> authenticated request forwarded to Pages Function
      -> Cf-Access-Authenticated-User-Email header injected by CF
 ```
 
-### User Identity in the Worker
+### User Identity in the Function
 
-For audit fields (`created_by`, `updated_by`), the Worker reads the email CF Access injects on every forwarded request:
+For audit fields (`created_by`, `updated_by`), the Function reads the email CF Access injects on every forwarded request (see `functions/api/_lib/auth.ts` → `getUserEmail`):
 
 ```typescript
-const userEmail = request.headers.get("Cf-Access-Authenticated-User-Email") ?? "unknown";
+const userEmail = c.req.header("Cf-Access-Authenticated-User-Email") ?? "unknown";
 ```
 
-No JWT parsing or signature verification needed — CF Access has already authenticated the user.
+No JWT parsing or signature verification needed — CF Access has already authenticated the user at the edge.
 
-### Cloudflare Access Configuration Needed
+### Cloudflare Access Configuration
 
-Add PignusInventario as a new Access Application in Cloudflare One (same steps as Inversiones/Facturación):
+✓ Done. PignusInventario is registered as an Access Application in Cloudflare One:
 
 - **URL:** `inventario.pignuslabs.com.ar`
 - **Identity provider:** Google only
@@ -294,7 +295,7 @@ ON CONFLICT(filament_family_id) DO UPDATE SET
 
 **Style:** REST, JSON  
 **Base path:** `/api/inventory`  
-**Auth:** All endpoints require valid CF Access JWT. Worker rejects requests missing `CF-Access-Jwt-Assertion`.
+**Auth:** All endpoints require valid CF Access JWT. The Function's auth middleware rejects requests missing `CF-Access-Jwt-Assertion`.
 
 ### Standard Error Response
 
@@ -557,14 +558,14 @@ ORDER BY p.current_quantity DESC;
 
 | Rule | Where enforced |
 |---|---|
-| Quantities are integers only | Worker validation + D1 INTEGER type |
+| Quantities are integers only | Function validation + D1 INTEGER type |
 | Inventory may not go negative | Pre-insert check on projection before consume/adjust |
 | Inactive families cannot receive stock | Check `active = 1` before RECEIVE_STOCK |
 | Inactive families hidden by default | `include_inactive = false` default |
 | Barcode globally unique | D1 PRIMARY KEY on `barcode_mappings.barcode` |
 | Family identity unique | UNIQUE constraint on `(brand, material, brand_color_name)` |
-| Movement delta may not be 0 | Worker validation |
-| Adjustment `notes` required | Worker validation |
+| Movement delta may not be 0 | Function validation |
+| Adjustment `notes` required | Function validation |
 
 ---
 
@@ -626,7 +627,7 @@ Fixed bottom navigation bar:
 
 ### 9.4 Scanner Integration
 
-Use `@zxing/browser`. Camera opens in a full-screen modal overlay. Always show a manual barcode text input as fallback below the camera view.
+Use the native `BarcodeDetector` API where supported (Android Chrome/Edge), with a `@zxing/library` canvas-RAF fallback for browsers that don't expose it (iOS Safari, Firefox). Camera opens in a full-screen modal overlay. Always show a manual barcode text input as fallback below the camera view.
 
 **Scanner lifecycle:**
 1. User taps action → Scanner modal opens
@@ -685,27 +686,30 @@ Apply optimistic UI for receive and consume flows using TanStack Query `useMutat
 
 | Resource | Name | Purpose |
 |---|---|---|
-| Pages project | `pignus-inventario` | Frontend PWA + API (via CF Pages Functions) |
+| Pages project | `pignusinventario` | Frontend PWA + API (via CF Pages Functions) |
 | D1 database | `pignus-inventario-db` | Authoritative data |
 | KV namespace | `INVENTARIO_CACHE` | Dashboard/projection cache |
-| Worker | `pignus-inventario-api` | Local development only (`wrangler dev`) |
 
 ### Deployment model
 
-**CF Pages custom domains bypass standalone Worker routes.** The API runs as a CF Pages Function (`frontend/functions/api/[[catchall]].ts`), not as a separately deployed Worker. This keeps the API and frontend on the same domain with no CORS complexity.
+The API runs as a CF Pages Function (`frontend/functions/api/[[catchall]].ts`), not as a separately deployed Worker. This keeps the API and frontend on the same domain with no CORS complexity.
 
 ```
 inventario.pignuslabs.com.ar/api/*  →  CF Pages Function (Hono app)
 inventario.pignuslabs.com.ar/*      →  CF Pages static assets (React SPA)
 ```
 
+`frontend/public/_routes.json` explicitly includes `/api/*` so Pages always routes API requests to the Function instead of the SPA fallback.
+
+⚠️ **Standalone Workers can silently hijack `/api/*` traffic on the custom domain.** A Worker with a route pattern matching `inventario.pignuslabs.com.ar/api/*` takes priority over Pages Functions and intercepts all requests for matching paths. See the README for the diagnostic checklist if `/api/*` starts returning unexpected responses.
+
 **Production deployment:** push to `main` — CF Pages builds both the Vite frontend and the Functions automatically.
 
-**Local development:** `wrangler dev` in `worker/` runs a standalone Worker on `localhost:8787`. Vite proxies `/api` there via `vite.config.ts`.
+**Local development:** run Pages Functions with bindings via `npx wrangler pages dev .` from the `frontend/` directory (binds D1 and KV); run Vite with `npm run dev` and proxy `/api` to the wrangler dev port via `vite.config.ts`. CF Access does not run locally — comment out the auth middleware temporarily or supply a stub JWT header.
 
 ### D1 and KV bindings
 
-Bindings for the CF Pages Function (production) are configured in the **CF Pages dashboard → Settings → Bindings**, not in `wrangler.toml`. `wrangler.toml` bindings are used by the local dev Worker only.
+Bindings for the CF Pages Function (production) are configured in the **CF Pages dashboard → Settings → Bindings**. There is no `wrangler.toml` checked in; local dev bindings are passed as `wrangler pages dev` flags.
 
 | Binding | Type | Name/ID |
 |---|---|---|
@@ -715,7 +719,7 @@ Bindings for the CF Pages Function (production) are configured in the **CF Pages
 ### Schema changes
 
 ```
-wrangler d1 migrations apply pignus-inventario-db --remote
+npx wrangler d1 migrations apply pignus-inventario-db --remote
 ```
 
 Never apply DDL directly. Migration files live in `migrations/` at the repo root.
@@ -725,7 +729,6 @@ Never apply DDL directly. Migration files live in `migrations/` at the repo root
 ```
 migrations/
   0001_initial_schema.sql
-  0002_add_indexes.sql
 ```
 
 ---
@@ -747,31 +750,33 @@ Invalidate affected keys on every movement write.
 
 - **Provider:** Resend
 - **Model:** Daily digest only — no per-event emails
-- **Trigger:** Cloudflare Worker cron (`0 8 * * *` — 8am daily)
+- **Trigger:** scheduled cron at `0 8 * * *` (8am daily)
 - **Content:** Low stock families with quantities and available alternatives
-- **Recipients:** Hardcoded in Worker environment variable (5 users)
+- **Recipients:** Hardcoded in the cron handler's environment variables (5 users)
+
+**Implementation note:** CF Pages Functions do not support cron triggers. A separate, minimal Cloudflare Worker will need to be added for this trigger (must NOT bind a route on `inventario.pignuslabs.com.ar`). Decide at Phase 3 entry whether to add a `worker/` workspace then. The Worker only needs `DB` binding (read-only) and Resend API access.
 
 ---
 
 ## 14. Implementation Phases
 
-### Phase 0 — Infrastructure
-- Worker scaffold + Wrangler config
-- D1 creation + `0001_initial_schema.sql`
-- CF Access JWT validation middleware
-- Cloudflare Pages + React/Vite scaffold
-- PignusUI CSS via `<link>` CDN tag
+### Phase 0 — Infrastructure ✓ DONE
+- ~~Worker scaffold + Wrangler config~~ → Pages Functions scaffold at `frontend/functions/`
+- D1 creation + `0001_initial_schema.sql` ✓
+- CF Access JWT validation middleware ✓
+- Cloudflare Pages + React/Vite scaffold ✓
+- PignusUI CSS via `<link>` CDN tag ✓
 
-### Phase 1 — Core Inventory
-- `filament_families` CRUD
-- `barcode_mappings` endpoints
-- `inventory_movements` endpoints (receive, consume, adjust)
-- `inventory_projection` materialized table + transactional updates
-- Scanner component
-- Receive flow end-to-end
-- Consume flow end-to-end
+### Phase 1 — Core Inventory ✓ DONE
+- `filament_families` CRUD ✓
+- `barcode_mappings` endpoints ✓
+- `inventory_movements` endpoints (receive, consume, adjust) ✓
+- `inventory_projection` materialized table + transactional updates ✓
+- Scanner component ✓
+- Receive flow end-to-end ✓
+- Consume flow end-to-end ✓
 
-### Phase 2 — Discovery & Dashboard
+### Phase 2 — Discovery & Dashboard (current)
 - `GET /families` with search, filter, sort
 - Family list with inline editing
 - Low stock logic + alternatives query
@@ -782,7 +787,7 @@ Invalidate affected keys on every movement write.
 ### Phase 3 — Operations & Notifications
 - Movement edit flow
 - Admin tools (barcode remapping, family deactivation, inventory correction)
-- Resend email integration + cron Worker
+- Resend email integration + cron Worker (requires adding a separate `worker/` workspace — see §13)
 - KV caching layer
 
 ### Phase 4 — Forecasting Foundation
@@ -808,7 +813,7 @@ Invalidate affected keys on every movement write.
 - Operational simplicity over architectural elegance
 - Mobile speed — minimize API round trips in scanner flows
 - Clean movement history — never delete, never mutate `created_at`
-- Type safety end-to-end — define types in `src/types/index.ts`, share across Worker and frontend
+- Type safety end-to-end — define types in `src/types/index.ts` and `shared/types.ts`, share across Functions and frontend
 
 ---
 
@@ -824,12 +829,14 @@ Invalidate affected keys on every movement write.
 | PWA offline mode | None — installability only |
 | Movement edit permissions | All authenticated users in MVP |
 | Email provider | Resend |
-| Barcode library | `@zxing/browser` |
+| Barcode library | Native `BarcodeDetector` + `@zxing/library` canvas fallback |
+| Backend deployment shape | Single Pages project with Functions — no separate Worker for the API |
 
 ### Still Open
 
 | Question | Notes |
 |---|---|
 | Portal dashboard integration | How Portal will consume inventory data — defer until Portal dashboard is built |
-| Forecasting service boundary | Inside this Worker or a separate Portal analytics subsystem — defer to post-MVP |
+| Forecasting service boundary | Inside this Pages project or a separate Portal analytics subsystem — defer to post-MVP |
 | Resend domain configuration | DNS setup for email sending domain needed before Phase 3 |
+| Cron Worker workspace | Phase 3 needs a separate Worker for daily digest; decide name + repo layout at Phase 3 entry (§13) |
