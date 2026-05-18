@@ -1,5 +1,6 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Header from './components/Header'
+import DomainNav from './components/DomainNav'
 import PageTabs from './components/PageTabs'
 import Footer from './components/Footer'
 import Dashboard from './pages/Dashboard'
@@ -9,12 +10,18 @@ import FamilyList from './pages/FamilyList'
 import FamilyCreate from './pages/FamilyCreate'
 import FamilyDetail from './pages/FamilyDetail'
 import MovementHistory from './pages/MovementHistory'
+import UnderConstruction from './pages/UnderConstruction'
+import { isFilamentoDomain } from './lib/domains'
 
 export default function App() {
+  const location = useLocation()
+  const onFilamento = isFilamentoDomain(location.pathname)
+
   return (
     <div className="pignus-app">
       <Header />
-      <PageTabs />
+      <DomainNav />
+      {onFilamento && <PageTabs />}
       <main className="main">
         <Routes>
           <Route path="/" element={<Dashboard />} />
@@ -24,6 +31,9 @@ export default function App() {
           <Route path="/families/new" element={<FamilyCreate />} />
           <Route path="/families/:id" element={<FamilyDetail />} />
           <Route path="/movements" element={<MovementHistory />} />
+          <Route path="/packaging" element={<UnderConstruction title="Packaging" />} />
+          <Route path="/consumibles" element={<UnderConstruction title="Consumibles" />} />
+          <Route path="/productos-terminados" element={<UnderConstruction title="Productos terminados" />} />
         </Routes>
       </main>
       <Footer />

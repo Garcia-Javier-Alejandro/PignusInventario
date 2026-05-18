@@ -20,13 +20,20 @@
   }
 }
 
-/* Page tabs strip — the app's per-page nav (Dashboard / Inventario / ...).
-   Sits directly below the platform header so we get one continuous PignusLabs
-   chrome at the top. Reuses PignusUI's .mod-nav for the pill row. */
+/* Domain nav strip — inventory categories (Filamento / Packaging / ...).
+   Sits between the platform header and the page tabs so the hierarchy is
+   PignusLabs > inventory domain > page within the domain. */
+.domain-nav-row {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background: var(--cream);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Page tabs strip — the per-page nav within the Filamento domain
+   (Dashboard / Inventario / Ingresar / ...). Reuses PignusUI's .mod-nav. */
 .page-tabs-row {
-  position: sticky;
-  top: 0;
-  z-index: 40;
   display: flex;
   justify-content: center;
   padding: 0.5rem 1rem;
@@ -34,6 +41,7 @@
   border-bottom: 1px solid var(--border);
 }
 
+.domain-nav-row .mod-nav,
 .page-tabs-row .mod-nav {
   max-width: 100%;
   overflow-x: auto;
@@ -42,12 +50,44 @@
 }
 
 @media (max-width: 640px) {
+  .domain-nav-row,
   .page-tabs-row { padding: 0.4rem 0.25rem; }
+  .domain-nav-row .mod-nav__item,
   .page-tabs-row .mod-nav__item {
     padding: 0.35rem 0.7rem;
     font-size: 0.82rem;
     white-space: nowrap;
   }
+}
+
+/* En construcción placeholder */
+.under-construction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-16) var(--space-4);
+  text-align: center;
+}
+
+.under-construction__icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.under-construction__title {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semi);
+  color: var(--ink);
+  margin: 0;
+}
+
+.under-construction__sub {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  margin: 0;
+  max-width: 32ch;
 }
 
 /* Scanner overlay */
