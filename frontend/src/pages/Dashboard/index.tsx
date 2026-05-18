@@ -152,19 +152,58 @@ export default function Dashboard() {
         </section>
       )}
 
+      {/* Always-visible build label — sits OUTSIDE any styled container so
+          it remains readable even if .debug-section's layout breaks. */}
+      <div style={{
+        fontSize: 11,
+        color: 'var(--ink-3)',
+        textAlign: 'center',
+        margin: '24px 0 4px',
+        fontFamily: 'ui-monospace, monospace',
+      }}>
+        Build {formatBuildLabel()}
+      </div>
+
       <details className="debug-section">
         <summary>Aux Debug Tools</summary>
-        <div className="debug-body">
-          <button type="button" className="btn btn--secondary" onClick={() => setShowImport(true)}>
+        {/* Inline styles override all CSS. We've had a stubborn cascade
+            collision against PignusUI's .debug-body row layout; this
+            sidesteps it entirely. */}
+        <div
+          className="debug-body"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'stretch',
+            gap: 8,
+            paddingTop: 12,
+            marginTop: 0,
+          }}
+        >
+          <button
+            type="button"
+            className="btn btn--secondary"
+            onClick={() => setShowImport(true)}
+            style={{ width: '100%' }}
+          >
             Importar inventario inicial
           </button>
-          <button type="button" className="btn btn--secondary" onClick={forceAppUpdate}>
+          <button
+            type="button"
+            className="btn btn--secondary"
+            onClick={forceAppUpdate}
+            style={{ width: '100%' }}
+          >
             Forzar actualización
           </button>
-          <button type="button" className="btn btn--danger" onClick={() => setShowWipe(true)}>
+          <button
+            type="button"
+            className="btn btn--danger"
+            onClick={() => setShowWipe(true)}
+            style={{ width: '100%' }}
+          >
             Borrar todo el inventario
           </button>
-          <span className="debug-status">Build: <code>{formatBuildLabel()}</code></span>
         </div>
       </details>
 
