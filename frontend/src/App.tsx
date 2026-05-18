@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import BottomNav from './components/BottomNav'
+import Footer from './components/Footer'
 import Dashboard from './pages/Dashboard'
 import ReceiveFlow from './pages/ReceiveFlow'
 import ConsumeFlow from './pages/ConsumeFlow'
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="/consumibles" element={<UnderConstruction title="Consumibles" />} />
           <Route path="/productos-terminados" element={<UnderConstruction title="Productos" />} />
         </Routes>
+        <Footer />
       </main>
       {onFilamento && <BottomNav />}
     </div>

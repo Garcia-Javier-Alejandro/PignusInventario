@@ -250,6 +250,21 @@
   font-size: var(--text-sm);
 }
 
+/* Intent toggle (Ingresar / Consumir) — sits centred above the camera. */
+.scan-intent-toolbar {
+  display: inline-flex;
+  align-self: center;
+  margin: 0 auto var(--space-3);
+  background: rgba(28, 24, 19, 0.06);
+  border-radius: 99px;
+  padding: 3px;
+}
+
+.scan-page {
+  display: flex;
+  flex-direction: column;
+}
+
 .scan-controls {
   display: flex;
   align-items: center;
@@ -258,18 +273,10 @@
 }
 
 .scan-controls__input {
-  flex: 1 1 110px;
+  flex: 1 1 auto;
   min-width: 0;
-  padding: 8px 10px;
+  padding: 10px 12px;
   font-size: 14px;
-}
-
-.scan-controls__intent {
-  display: inline-flex;
-  background: rgba(28, 24, 19, 0.06);
-  border-radius: 99px;
-  padding: 3px;
-  flex-shrink: 0;
 }
 
 .scan-intent-btn {

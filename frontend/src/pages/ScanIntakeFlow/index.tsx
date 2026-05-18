@@ -103,6 +103,23 @@ export default function ScanIntakeFlow() {
 
       {step === 'scan' && (
         <>
+          <div className="scan-intent-toolbar" role="radiogroup" aria-label="Acción">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={intent === 'receive'}
+              className={`scan-intent-btn${intent === 'receive' ? ' is-active' : ''}`}
+              onClick={() => setIntent('receive')}
+            >Ingresar</button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={intent === 'consume'}
+              className={`scan-intent-btn${intent === 'consume' ? ' is-active' : ''}`}
+              onClick={() => setIntent('consume')}
+            >Consumir</button>
+          </div>
+
           <div className="scan-camera">
             <video ref={videoRef} className="scan-video" autoPlay muted playsInline />
             <div className="scan-reticle" />
@@ -119,23 +136,6 @@ export default function ScanIntakeFlow() {
               className="scan-controls__input"
               autoComplete="off"
             />
-
-            <div className="scan-controls__intent" role="radiogroup" aria-label="Acción">
-              <button
-                type="button"
-                role="radio"
-                aria-checked={intent === 'receive'}
-                className={`scan-intent-btn${intent === 'receive' ? ' is-active' : ''}`}
-                onClick={() => setIntent('receive')}
-              >Ingresar</button>
-              <button
-                type="button"
-                role="radio"
-                aria-checked={intent === 'consume'}
-                className={`scan-intent-btn${intent === 'consume' ? ' is-active' : ''}`}
-                onClick={() => setIntent('consume')}
-              >Consumir</button>
-            </div>
 
             <button
               type="button"
