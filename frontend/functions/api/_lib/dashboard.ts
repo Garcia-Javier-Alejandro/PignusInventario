@@ -14,7 +14,7 @@ dashboard.get('/', async (c) => {
       ORDER BY COALESCE(p.current_quantity, 0) ASC, f.brand ASC
     `),
     c.env.DB.prepare(`
-      SELECT m.*, f.brand, f.material, f.brand_color_name
+      SELECT m.*, f.brand, f.material, f.brand_color_name, f.normalized_visual_color
       FROM inventory_movements m
       JOIN filament_families f ON f.id = m.filament_family_id
       ORDER BY m.created_at DESC LIMIT 10

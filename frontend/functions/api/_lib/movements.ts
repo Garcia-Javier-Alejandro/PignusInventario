@@ -173,7 +173,7 @@ movements.get('/', async (c) => {
 
   const [rows, totalRow] = await c.env.DB.batch([
     c.env.DB.prepare(`
-      SELECT m.*, f.brand, f.material, f.brand_color_name
+      SELECT m.*, f.brand, f.material, f.brand_color_name, f.normalized_visual_color
       FROM inventory_movements m
       JOIN filament_families f ON f.id = m.filament_family_id
       WHERE ${where}

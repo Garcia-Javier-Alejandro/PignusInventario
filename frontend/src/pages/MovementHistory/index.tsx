@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMovements } from '../../hooks/useMovements'
 import MovementEditModal from '../../components/MovementEditModal'
+import ColorDot from '../../components/ColorDot'
 import type { InventoryMovement } from '../../types'
 
 const PAGE_SIZE = 50
@@ -52,6 +53,7 @@ export default function MovementHistory() {
             <table className="orders-table">
               <thead>
                 <tr>
+                  <th></th>
                   <th>Filamento</th>
                   <th>Tipo</th>
                   <th>Δ</th>
@@ -64,6 +66,7 @@ export default function MovementHistory() {
               <tbody>
                 {data.movements.map((m) => (
                   <tr key={m.id}>
+                    <td><ColorDot color={m.normalized_visual_color} /></td>
                     <td>
                       <div className="family-name">{m.brand} {m.material}</div>
                       <div className="family-color">{m.brand_color_name}</div>

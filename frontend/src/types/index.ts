@@ -40,6 +40,7 @@ export interface InventoryMovement {
   brand?: string
   material?: string
   brand_color_name?: string
+  normalized_visual_color?: NormalizedVisualColor
 }
 
 export interface DashboardSummary {

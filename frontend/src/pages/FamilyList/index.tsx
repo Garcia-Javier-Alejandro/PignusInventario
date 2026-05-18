@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useFamilies, usePatchFamily } from '../../hooks/useFamilies'
 import ManualAdjustModal from '../../components/ManualAdjustModal'
 import ColorPalette from '../../components/ColorPalette'
+import ColorDot from '../../components/ColorDot'
 import type { FilamentFamily, NormalizedVisualColor } from '../../types'
 
 const MATERIALS = ['PLA', 'PETG', 'ABS', 'TPU', 'ASA', 'Nylon', 'PC']
@@ -85,6 +86,7 @@ export default function FamilyList() {
           <table className="orders-table">
             <thead>
               <tr>
+                <th></th>
                 <th>Filamento</th>
                 <th>Stock</th>
                 <th>Umbral</th>
@@ -100,6 +102,7 @@ export default function FamilyList() {
                   onClick={() => navigate(`/families/${f.id}`)}
                   style={{ cursor: 'pointer' }}
                 >
+                  <td><ColorDot color={f.normalized_visual_color} /></td>
                   <td>
                     <div className="family-name">{f.brand} {f.material}</div>
                     <div className="family-color">{f.brand_color_name}</div>

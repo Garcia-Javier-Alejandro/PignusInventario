@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useDashboard } from '../../hooks/useDashboard'
 import BarcodeAdminModal from '../../components/BarcodeAdminModal'
 import ImportModal from '../../components/ImportModal'
+import ColorDot from '../../components/ColorDot'
 
 export default function Dashboard() {
   const { data, isLoading, isError } = useDashboard()
@@ -33,6 +34,7 @@ export default function Dashboard() {
             <table className="orders-table">
               <thead>
                 <tr>
+                  <th></th>
                   <th>Filamento</th>
                   <th>Stock</th>
                   <th>Umbral</th>
@@ -41,6 +43,7 @@ export default function Dashboard() {
               <tbody>
                 {data.low_stock.map((f) => (
                   <tr key={f.id}>
+                    <td><ColorDot color={f.normalized_visual_color} /></td>
                     <td>{f.brand} {f.material} {f.brand_color_name}</td>
                     <td>
                       <span className={`pill ${f.current_quantity === 0 ? 'pill--err' : 'pill--pending'}`}>
@@ -63,6 +66,7 @@ export default function Dashboard() {
             <table className="orders-table">
               <thead>
                 <tr>
+                  <th></th>
                   <th>Filamento</th>
                   <th>Acción</th>
                   <th>Δ</th>
@@ -71,6 +75,7 @@ export default function Dashboard() {
               <tbody>
                 {data.recent_movements.map((m) => (
                   <tr key={m.id}>
+                    <td><ColorDot color={m.normalized_visual_color} /></td>
                     <td>{m.brand} {m.material} {m.brand_color_name}</td>
                     <td>
                       <span className={`pill ${m.movement_type === 'RECEIVE_STOCK' ? 'pill--ok' : m.movement_type === 'CONSUME_OPEN' ? 'pill--pending' : ''}`}>

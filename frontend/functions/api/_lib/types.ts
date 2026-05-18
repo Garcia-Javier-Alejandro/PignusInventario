@@ -32,6 +32,7 @@ export interface MovementRow {
   brand?: string
   material?: string
   brand_color_name?: string
+  normalized_visual_color?: string
 }
 
 export function formatFamily(row: FamilyRow) {

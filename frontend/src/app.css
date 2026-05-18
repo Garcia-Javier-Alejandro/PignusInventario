@@ -515,6 +515,27 @@
   align-self: center;
 }
 
+/* Color dot (inline marker for tables) */
+.color-dot {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  vertical-align: middle;
+  background-clip: padding-box;
+}
+
+.color-dot--has-border { box-shadow: inset 0 0 0 1px var(--border-mid); }
+
+.color-dot--empty {
+  background:
+    linear-gradient(45deg, #e5e7eb 25%, transparent 25%, transparent 75%, #e5e7eb 75%),
+    linear-gradient(45deg, #e5e7eb 25%, transparent 25%, transparent 75%, #e5e7eb 75%);
+  background-color: #f3f4f6;
+  background-size: 8px 8px;
+  background-position: 0 0, 4px 4px;
+}
+
 /* Color palette / swatches */
 .color-palette {
   display: flex;
