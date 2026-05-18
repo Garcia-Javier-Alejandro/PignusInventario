@@ -5,6 +5,10 @@ const BARCODE_FORMATS = [
   'code_128', 'code_39', 'code_93', 'data_matrix', 'pdf417',
 ]
 
+// Require this many consecutive identical detections before accepting a
+// barcode. Eliminates one-frame misdecodes that pass the checksum coincidentally.
+const REQUIRED_CONSECUTIVE = 2
+
 export function useScanner(onDetected: (barcode: string) => void) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
@@ -26,6 +30,21 @@ export function useScanner(onDetected: (barcode: string) => void) {
   const start = useCallback(async () => {
     setError(null)
     setActive(true)
+
+    let streak: { code: string; count: number } | null = null
+    const consume = (code: string): boolean => {
+      if (streak?.code === code) {
+        streak.count += 1
+      } else {
+        streak = { code, count: 1 }
+      }
+      if (streak.count >= REQUIRED_CONSECUTIVE) {
+        onDetectedRef.current(code)
+        return true
+      }
+      return false
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
@@ -42,7 +61,7 @@ export function useScanner(onDetected: (barcode: string) => void) {
           if (!streamRef.current) return
           try {
             const codes = await detector.detect(video)
-            if (codes.length > 0) { onDetectedRef.current(codes[0].rawValue); return }
+            if (codes.length > 0 && consume(codes[0].rawValue)) return
           } catch {}
           rafRef.current = requestAnimationFrame(() => { scan() })
         }
@@ -63,7 +82,7 @@ export function useScanner(onDetected: (barcode: string) => void) {
             try {
               const src = new HTMLCanvasElementLuminanceSource(canvas)
               const result = reader.decode(new BinaryBitmap(new HybridBinarizer(src)))
-              if (result) { onDetectedRef.current(result.getText()); return }
+              if (result && consume(result.getText())) return
             } catch { /* NotFoundException is normal when no barcode in frame */ }
           }
           rafRef.current = requestAnimationFrame(scan)
