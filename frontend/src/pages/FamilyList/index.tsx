@@ -2,21 +2,16 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useFamilies, usePatchFamily } from '../../hooks/useFamilies'
 import ManualAdjustModal from '../../components/ManualAdjustModal'
+import ColorPalette from '../../components/ColorPalette'
 import type { FilamentFamily, NormalizedVisualColor } from '../../types'
 
 const MATERIALS = ['PLA', 'PETG', 'ABS', 'TPU', 'ASA', 'Nylon', 'PC']
-const COLORS: { value: NormalizedVisualColor; label: string }[] = [
-  { value: 'BLACK', label: 'Negro' }, { value: 'WHITE', label: 'Blanco' },
-  { value: 'RED', label: 'Rojo' }, { value: 'BLUE', label: 'Azul' },
-  { value: 'GRAY', label: 'Gris' }, { value: 'TRANSLUCENT', label: 'Translúcido' },
-  { value: 'MULTICOLOR', label: 'Multicolor' },
-]
 
 export default function FamilyList() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [material, setMaterial] = useState('')
-  const [visualColor, setVisualColor] = useState('')
+  const [visualColor, setVisualColor] = useState<NormalizedVisualColor | ''>('')
   const [lowStockOnly, setLowStockOnly] = useState(false)
   const [adjustFamily, setAdjustFamily] = useState<FilamentFamily | null>(null)
   const [editCell, setEditCell] = useState<{ id: string; field: 'reorder_threshold' | 'notes' } | null>(null)
@@ -74,19 +69,13 @@ export default function FamilyList() {
             >{m}</button>
           ))}
           <span className="filter-divider" />
-          {COLORS.map(({ value, label }) => (
-            <button
-              key={value}
-              className={`btn btn--xs ${visualColor === value ? 'btn--primary' : 'btn--ghost'}`}
-              onClick={() => setVisualColor(visualColor === value ? '' : value)}
-            >{label}</button>
-          ))}
-          <span className="filter-divider" />
           <button
             className={`btn btn--xs ${lowStockOnly ? 'btn--primary' : 'btn--ghost'}`}
             onClick={() => setLowStockOnly(!lowStockOnly)}
           >Stock bajo</button>
         </div>
+
+        <ColorPalette value={visualColor} onChange={setVisualColor} allowClear />
       </div>
 
       {isLoading && <div className="main-loading"><span className="spinner" /></div>}

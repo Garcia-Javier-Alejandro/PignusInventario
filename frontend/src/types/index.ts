@@ -1,5 +1,6 @@
 export type NormalizedVisualColor =
-  | 'BLACK' | 'WHITE' | 'RED' | 'BLUE' | 'GRAY' | 'TRANSLUCENT' | 'MULTICOLOR'
+  | 'BLACK' | 'WHITE' | 'RED' | 'ORANGE' | 'YELLOW' | 'GREEN'
+  | 'BLUE' | 'PURPLE' | 'PINK' | 'BROWN' | 'GRAY' | 'TRANSLUCENT' | 'MULTICOLOR'
 
 export type MovementType = 'RECEIVE_STOCK' | 'CONSUME_OPEN' | 'MANUAL_ADJUSTMENT'
 

@@ -2,13 +2,9 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useCreateFamily } from '../../hooks/useFamilies'
 import { registerBarcode } from '../../api/barcode'
+import ColorPalette from '../../components/ColorPalette'
+import { VISUAL_COLOR_LABELS } from '../../lib/visualColors'
 import type { NormalizedVisualColor } from '../../types'
-
-const VISUAL_COLORS: NormalizedVisualColor[] = ['BLACK', 'WHITE', 'RED', 'BLUE', 'GRAY', 'TRANSLUCENT', 'MULTICOLOR']
-const COLOR_LABELS: Record<NormalizedVisualColor, string> = {
-  BLACK: 'Negro', WHITE: 'Blanco', RED: 'Rojo', BLUE: 'Azul',
-  GRAY: 'Gris', TRANSLUCENT: 'Translúcido', MULTICOLOR: 'Multicolor',
-}
 
 export default function FamilyCreate() {
   const navigate = useNavigate()
@@ -76,12 +72,11 @@ export default function FamilyCreate() {
         </div>
 
         <div className="family-form__field">
-          <label>Color visual *</label>
-          <select value={form.normalized_visual_color} onChange={set('normalized_visual_color')}>
-            {VISUAL_COLORS.map((c) => (
-              <option key={c} value={c}>{COLOR_LABELS[c]}</option>
-            ))}
-          </select>
+          <label>Color visual * <span className="family-form__hint">{VISUAL_COLOR_LABELS[form.normalized_visual_color]}</span></label>
+          <ColorPalette
+            value={form.normalized_visual_color}
+            onChange={(next) => next && setForm((f) => ({ ...f, normalized_visual_color: next }))}
+          />
         </div>
 
         <div className="family-form__field">
