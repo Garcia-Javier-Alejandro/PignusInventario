@@ -52,4 +52,10 @@ export interface DashboardSummary {
   recently_received: FilamentFamily[]
   total_families: number
   low_stock_count: number
+  /** Sum of current_quantity (rollos) across all active filaments. */
+  total_stock: number
+  /** Sum of consumed rollos in the current month (positive number). */
+  consumed_this_month: number
+  /** Sum of received rollos in the current month (positive number). */
+  received_this_month: number
 }

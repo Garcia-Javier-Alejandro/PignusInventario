@@ -5,7 +5,19 @@ import { formatFamily, formatMovement } from './types'
 const dashboard = new Hono<{ Bindings: Env }>()
 
 dashboard.get('/', async (c) => {
-  const [lowStockResult, recentMovementsResult, totalResult] = await c.env.DB.batch([
+  // First day of the current month (UTC) as an ISO string for the
+  // monthly movement queries.
+  const now = new Date()
+  const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString()
+
+  const [
+    lowStockResult,
+    recentMovementsResult,
+    totalResult,
+    totalStockResult,
+    consumedMonthResult,
+    receivedMonthResult,
+  ] = await c.env.DB.batch([
     c.env.DB.prepare(`
       SELECT f.*, COALESCE(p.current_quantity, 0) as current_quantity, 1 as is_low_stock
       FROM filament_families f
@@ -20,6 +32,22 @@ dashboard.get('/', async (c) => {
       ORDER BY m.created_at DESC LIMIT 10
     `),
     c.env.DB.prepare('SELECT COUNT(*) as count FROM filament_families WHERE active = 1'),
+    c.env.DB.prepare(`
+      SELECT COALESCE(SUM(p.current_quantity), 0) as total
+      FROM inventory_projection p
+      JOIN filament_families f ON f.id = p.filament_family_id
+      WHERE f.active = 1
+    `),
+    c.env.DB.prepare(`
+      SELECT COALESCE(SUM(-quantity_delta), 0) as total
+      FROM inventory_movements
+      WHERE movement_type = 'CONSUME_OPEN' AND created_at >= ?
+    `).bind(startOfMonth),
+    c.env.DB.prepare(`
+      SELECT COALESCE(SUM(quantity_delta), 0) as total
+      FROM inventory_movements
+      WHERE movement_type = 'RECEIVE_STOCK' AND created_at >= ?
+    `).bind(startOfMonth),
   ])
 
   const recentlyConsumed = await c.env.DB.prepare(`
@@ -53,6 +81,9 @@ dashboard.get('/', async (c) => {
     recently_received: recentlyReceived.results.map(formatFamily),
     total_families: (totalResult.results[0] as { count: number }).count,
     low_stock_count: lowStock.length,
+    total_stock: (totalStockResult.results[0] as { total: number }).total,
+    consumed_this_month: (consumedMonthResult.results[0] as { total: number }).total,
+    received_this_month: (receivedMonthResult.results[0] as { total: number }).total,
   })
 })
 

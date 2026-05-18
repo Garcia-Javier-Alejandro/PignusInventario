@@ -1,159 +1,66 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useDashboard } from '../../hooks/useDashboard'
 import ImportModal from '../../components/ImportModal'
 import WipeAllModal from '../../components/WipeAllModal'
 import ColorDot from '../../components/ColorDot'
 import { formatBuildLabel, forceAppUpdate } from '../../lib/buildInfo'
-import type { FilamentFamily, InventoryMovement } from '../../types'
+import type { InventoryMovement } from '../../types'
 
-type LowStockKey = 'color' | 'name' | 'stock' | 'threshold'
-type ActivityKey = 'color' | 'name' | 'action' | 'delta'
-
-const LOW_STOCK_CMP: Record<LowStockKey, (a: FilamentFamily, b: FilamentFamily) => number> = {
-  color: (a, b) => a.normalized_visual_color.localeCompare(b.normalized_visual_color),
-  name: (a, b) =>
-    a.brand.localeCompare(b.brand) ||
-    a.material.localeCompare(b.material) ||
-    a.brand_color_name.localeCompare(b.brand_color_name),
-  stock: (a, b) => a.current_quantity - b.current_quantity,
-  threshold: (a, b) => a.reorder_threshold - b.reorder_threshold,
-}
-
-const ACTIVITY_CMP: Record<ActivityKey, (a: InventoryMovement, b: InventoryMovement) => number> = {
-  color: (a, b) => (a.normalized_visual_color ?? '').localeCompare(b.normalized_visual_color ?? ''),
-  name: (a, b) =>
-    (a.brand ?? '').localeCompare(b.brand ?? '') ||
-    (a.material ?? '').localeCompare(b.material ?? '') ||
-    (a.brand_color_name ?? '').localeCompare(b.brand_color_name ?? ''),
-  action: (a, b) => a.movement_type.localeCompare(b.movement_type),
-  delta: (a, b) => a.quantity_delta - b.quantity_delta,
+const MOVEMENT_LABELS: Record<string, string> = {
+  RECEIVE_STOCK: 'Ingreso',
+  CONSUME_OPEN: 'Consumo',
+  MANUAL_ADJUSTMENT: 'Ajuste',
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate()
   const { data, isLoading, isError } = useDashboard()
   const [showImport, setShowImport] = useState(false)
   const [showWipe, setShowWipe] = useState(false)
 
-  const [lsSort, setLsSort] = useState<{ key: LowStockKey | null; dir: 'asc' | 'desc' }>({ key: null, dir: 'asc' })
-  const [actSort, setActSort] = useState<{ key: ActivityKey | null; dir: 'asc' | 'desc' }>({ key: null, dir: 'asc' })
-
-  const sortedLowStock = useMemo(() => {
-    if (!data || !lsSort.key) return data?.low_stock
-    const arr = [...data.low_stock].sort(LOW_STOCK_CMP[lsSort.key])
-    return lsSort.dir === 'desc' ? arr.reverse() : arr
-  }, [data, lsSort])
-
-  const sortedActivity = useMemo(() => {
-    if (!data || !actSort.key) return data?.recent_movements
-    const arr = [...data.recent_movements].sort(ACTIVITY_CMP[actSort.key])
-    return actSort.dir === 'desc' ? arr.reverse() : arr
-  }, [data, actSort])
-
-  const toggleLs = (key: LowStockKey) =>
-    setLsSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }))
-  const toggleAct = (key: ActivityKey) =>
-    setActSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }))
-
-  const lsThClass = (key: LowStockKey) =>
-    `th--sortable${lsSort.key === key ? (lsSort.dir === 'asc' ? ' th--sort-asc' : ' th--sort-desc') : ''}`
-  const actThClass = (key: ActivityKey) =>
-    `th--sortable${actSort.key === key ? (actSort.dir === 'asc' ? ' th--sort-asc' : ' th--sort-desc') : ''}`
-
   if (isLoading) return <div className="main-loading"><span className="spinner" /></div>
 
   return (
-    <div>
+    <div className="dashboard-page">
       {isError && (
         <div className="main-error" style={{ marginBottom: 'var(--space-4)' }}>
           Error al cargar el dashboard
         </div>
       )}
 
-      <div className="kpi-strip">
-        <div className="kpi-card">
-          <div className="kpi-card__eyebrow">Insumos activos totales</div>
-          <div className="kpi-card__value">{data?.total_families ?? '—'}</div>
-        </div>
-        <div className="kpi-card">
-          <div className="kpi-card__eyebrow">Insumos con stock bajo</div>
-          <div className="kpi-card__value" style={{ color: data?.low_stock_count ? 'var(--err)' : undefined }}>
-            {data?.low_stock_count ?? '—'}
-          </div>
-        </div>
+      <HeroLowStockCard
+        lowCount={data?.low_stock_count ?? 0}
+        totalActive={data?.total_families ?? 0}
+      />
+
+      <div className="mini-kpi-row">
+        <MiniKpi label="Stock total" value={data?.total_stock} unit="kg" />
+        <MiniKpi label="Consumo / mes" value={data?.consumed_this_month} unit="kg" />
+        <MiniKpi label="Ingresos / mes" value={data?.received_this_month} unit="kg" />
       </div>
 
-      {sortedLowStock && sortedLowStock.length > 0 && (
-        <section className="dashboard-section">
-          <h2 className="dashboard-section__title">Insumos con stock bajo</h2>
-          <div className="table-wrap">
-            <table className="orders-table">
-              <thead>
-                <tr>
-                  <th className={lsThClass('color')} onClick={() => toggleLs('color')}><ColorDot color="MULTICOLOR" /></th>
-                  <th className={lsThClass('name')} onClick={() => toggleLs('name')}>Filamento</th>
-                  <th className={lsThClass('stock')} onClick={() => toggleLs('stock')}>Stock</th>
-                  <th className={lsThClass('threshold')} onClick={() => toggleLs('threshold')}>Umbral</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedLowStock.map((f) => (
-                  <tr key={f.id}>
-                    <td><ColorDot color={f.normalized_visual_color} /></td>
-                    <td>
-                      <div className="family-name">{f.brand} {f.material}</div>
-                      <div className="family-color">{f.brand_color_name}</div>
-                    </td>
-                    <td style={{ color: 'var(--err)', fontWeight: 'var(--weight-semi)' }}>
-                      {f.current_quantity}
-                    </td>
-                    <td>{f.reorder_threshold}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <section className="dashboard-section">
+        <div className="dashboard-section__head">
+          <h2 className="dashboard-section__title">Movimientos recientes</h2>
+          <button type="button" className="link-btn" onClick={() => navigate('/movements')}>
+            Ver todos
+          </button>
+        </div>
+        {data && data.recent_movements.length === 0 && (
+          <p className="empty-state">Sin movimientos</p>
+        )}
+        {data && data.recent_movements.length > 0 && (
+          <div className="movement-list">
+            {data.recent_movements.slice(0, 6).map((m) => (
+              <RecentMovementRow key={m.id} m={m} />
+            ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
-      {sortedActivity && sortedActivity.length > 0 && (
-        <section className="dashboard-section">
-          <h2 className="dashboard-section__title">Actividad reciente</h2>
-          <div className="table-wrap">
-            <table className="orders-table">
-              <thead>
-                <tr>
-                  <th className={actThClass('color')} onClick={() => toggleAct('color')}><ColorDot color="MULTICOLOR" /></th>
-                  <th className={actThClass('name')} onClick={() => toggleAct('name')}>Filamento</th>
-                  <th className={actThClass('action')} onClick={() => toggleAct('action')}>Acción</th>
-                  <th className={actThClass('delta')} onClick={() => toggleAct('delta')}>Δ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedActivity.map((m) => (
-                  <tr key={m.id}>
-                    <td><ColorDot color={m.normalized_visual_color} /></td>
-                    <td>
-                      <div className="family-name">{m.brand} {m.material}</div>
-                      <div className="family-color">{m.brand_color_name}</div>
-                    </td>
-                    <td>
-                      <span className={`pill ${m.movement_type === 'RECEIVE_STOCK' ? 'pill--ok' : m.movement_type === 'CONSUME_OPEN' ? 'pill--pending' : ''}`}>
-                        {m.movement_type === 'RECEIVE_STOCK' ? 'Recibido' : m.movement_type === 'CONSUME_OPEN' ? 'Consumido' : 'Ajuste'}
-                      </span>
-                    </td>
-                    <td style={{ color: m.quantity_delta > 0 ? 'var(--ok)' : 'var(--err)' }}>
-                      {m.quantity_delta > 0 ? '+' : ''}{m.quantity_delta}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
-
-      {/* Always-visible build label — sits OUTSIDE any styled container so
-          it remains readable even if .debug-section's layout breaks. */}
+      {/* Always-visible build label outside any styled container so the
+          hash stays readable even when a nested layout breaks. */}
       <div style={{
         fontSize: 11,
         color: 'var(--ink-3)',
@@ -166,9 +73,9 @@ export default function Dashboard() {
 
       <details className="debug-section">
         <summary>Aux Debug Tools</summary>
-        {/* Inline styles override all CSS. We've had a stubborn cascade
-            collision against PignusUI's .debug-body row layout; this
-            sidesteps it entirely. */}
+        {/* Inline styles override the cascade: PignusUI's .debug-body ships
+            as a horizontal row and an external-stylesheet override loses on
+            partial-cache states. See feedback_pignusui_override_collision. */}
         <div
           className="debug-body"
           style={{
@@ -209,6 +116,73 @@ export default function Dashboard() {
 
       {showImport && <ImportModal onClose={() => setShowImport(false)} />}
       {showWipe && <WipeAllModal onClose={() => setShowWipe(false)} />}
+    </div>
+  )
+}
+
+function HeroLowStockCard({ lowCount, totalActive }: { lowCount: number; totalActive: number }) {
+  return (
+    <div className="hero-card">
+      <div className="hero-card__icon">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+          <path d="M11 3l9 16H2L11 3z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+          <path d="M11 9v4M11 16h.01" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+        </svg>
+      </div>
+      <div className="hero-card__body">
+        <div className="kpi-card__eyebrow">Insumos con stock bajo</div>
+        <div className="hero-card__value-row">
+          <span className="kpi-card__value hero-card__value">{lowCount}</span>
+          <span className="hero-card__hint">de {totalActive} activos</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MiniKpi({ label, value, unit }: { label: string; value?: number; unit?: string }) {
+  return (
+    <div className="mini-kpi">
+      <div className="kpi-card__eyebrow">{label}</div>
+      <div className="mini-kpi__value-row">
+        <span className="kpi-card__value mini-kpi__value">{value ?? '—'}</span>
+        {unit && <span className="mini-kpi__unit">{unit}</span>}
+      </div>
+    </div>
+  )
+}
+
+function RecentMovementRow({ m }: { m: InventoryMovement }) {
+  const isIn = m.movement_type === 'RECEIVE_STOCK'
+  const isAdj = m.movement_type === 'MANUAL_ADJUSTMENT'
+  const action = MOVEMENT_LABELS[m.movement_type] ?? m.movement_type
+  return (
+    <div className="movement-row">
+      <span className="movement-row__color">
+        <ColorDot color={m.normalized_visual_color} />
+      </span>
+      <div className={`movement-row__icon ${isIn ? 'is-in' : isAdj ? 'is-adjust' : 'is-out'}`}>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          {isIn ? (
+            <path d="M7 11V3m0 0L3 7m4-4l4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          ) : isAdj ? (
+            <text x="7" y="10" textAnchor="middle" fontSize="11" fontWeight="700" fill="currentColor">±</text>
+          ) : (
+            <path d="M7 3v8m0 0l-4-4m4 4l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          )}
+        </svg>
+      </div>
+      <div className="movement-row__body">
+        <div className="movement-row__label">
+          {action} · {m.brand} {m.material} {m.brand_color_name}
+        </div>
+        <div className="movement-row__when">
+          {new Date(m.created_at).toLocaleDateString('es-AR')}
+        </div>
+      </div>
+      <div className={`movement-row__delta ${m.quantity_delta > 0 ? 'is-pos' : 'is-neg'}`}>
+        {m.quantity_delta > 0 ? '+' : ''}{m.quantity_delta}
+      </div>
     </div>
   )
 }
