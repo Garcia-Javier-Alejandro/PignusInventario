@@ -474,6 +474,62 @@
   font-size: var(--text-sm);
 }
 
+/* Family edit modal */
+.barcode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--cream-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-1);
+}
+
+.barcode-row code {
+  font-size: var(--text-sm);
+}
+
+.barcode-add-row {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.barcode-add-row input { flex: 1; }
+
+.edit-diff {
+  background: color-mix(in srgb, var(--blue) 6%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--blue) 25%, var(--border));
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.edit-diff__title {
+  font-weight: var(--weight-semi);
+  margin-bottom: var(--space-2);
+  color: var(--ink-2);
+}
+
+.edit-diff ul {
+  margin: 0;
+  padding-left: var(--space-4);
+}
+
+.edit-diff__before { color: var(--ink-3); text-decoration: line-through; }
+.edit-diff__after { color: var(--ink); font-weight: var(--weight-semi); }
+
+.delete-impact {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  padding-left: var(--space-4);
+  margin: var(--space-3) 0;
+}
+
+.delete-impact li { margin-bottom: var(--space-1); }
+
 /* Aux Debug Tools (Dashboard collapsible) */
 .debug-section {
   margin-top: var(--space-8);

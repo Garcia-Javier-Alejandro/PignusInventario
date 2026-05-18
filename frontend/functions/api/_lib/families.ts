@@ -111,6 +111,10 @@ families.patch('/:id', async (c) => {
   const updates: string[] = []
   const params: unknown[] = []
 
+  if (body.brand !== undefined) { updates.push('brand = ?'); params.push(body.brand) }
+  if (body.material !== undefined) { updates.push('material = ?'); params.push(body.material) }
+  if (body.brand_color_name !== undefined) { updates.push('brand_color_name = ?'); params.push(body.brand_color_name) }
+  if (body.normalized_visual_color !== undefined) { updates.push('normalized_visual_color = ?'); params.push(body.normalized_visual_color) }
   if (body.reorder_threshold !== undefined) { updates.push('reorder_threshold = ?'); params.push(body.reorder_threshold) }
   if (body.active !== undefined) { updates.push('active = ?'); params.push(body.active ? 1 : 0) }
   if (body.notes !== undefined) { updates.push('notes = ?'); params.push(body.notes) }
@@ -122,10 +126,43 @@ families.patch('/:id', async (c) => {
   updates.push('updated_at = ?')
   params.push(now, id)
 
-  await c.env.DB.prepare(`UPDATE filament_families SET ${updates.join(', ')} WHERE id = ?`).bind(...params).run()
+  try {
+    await c.env.DB.prepare(`UPDATE filament_families SET ${updates.join(', ')} WHERE id = ?`).bind(...params).run()
+  } catch (e: unknown) {
+    if (e instanceof Error && e.message.includes('UNIQUE constraint failed')) {
+      return c.json({ error: 'DUPLICATE_FAMILY', message: 'A family with this brand, material, and color already exists' }, 409)
+    }
+    throw e
+  }
 
   const family = await getFamilyWithStock(c.env.DB, id)
   return c.json(formatFamily(family!))
+})
+
+families.delete('/:id', async (c) => {
+  const id = c.req.param('id')
+
+  const existing = await c.env.DB.prepare('SELECT id FROM filament_families WHERE id = ?').bind(id).first()
+  if (!existing) return c.json({ error: 'FAMILY_NOT_FOUND', message: 'Filament family not found' }, 404)
+
+  const movementCount = await c.env.DB.prepare(
+    'SELECT COUNT(*) as count FROM inventory_movements WHERE filament_family_id = ?'
+  ).bind(id).first<{ count: number }>()
+
+  if ((movementCount?.count ?? 0) > 0) {
+    return c.json({
+      error: 'FAMILY_HAS_MOVEMENTS',
+      message: `No se puede borrar: el filamento tiene ${movementCount!.count} movimiento(s). Desactivalo en su lugar.`,
+    }, 409)
+  }
+
+  await c.env.DB.batch([
+    c.env.DB.prepare('DELETE FROM barcode_mappings WHERE filament_family_id = ?').bind(id),
+    c.env.DB.prepare('DELETE FROM inventory_projection WHERE filament_family_id = ?').bind(id),
+    c.env.DB.prepare('DELETE FROM filament_families WHERE id = ?').bind(id),
+  ])
+
+  return c.json({ deleted: id })
 })
 
 export default families

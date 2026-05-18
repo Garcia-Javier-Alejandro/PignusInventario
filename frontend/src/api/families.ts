@@ -22,6 +22,10 @@ export interface CreateFamilyBody {
 }
 
 export interface PatchFamilyBody {
+  brand?: string
+  material?: string
+  brand_color_name?: string
+  normalized_visual_color?: string
   reorder_threshold?: number
   active?: boolean
   notes?: string | null
@@ -53,4 +57,8 @@ export function patchFamily(id: string, body: PatchFamilyBody): Promise<Filament
 
 export function fetchAlternatives(id: string): Promise<{ alternatives: FilamentFamily[] }> {
   return api.get(`${BASE}/${id}/alternatives`)
+}
+
+export function deleteFamily(id: string): Promise<{ deleted: string }> {
+  return api.delete(`${BASE}/${id}`)
 }

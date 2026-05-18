@@ -8,6 +8,7 @@ export type ApiErrorCode =
   | 'BARCODE_NOT_FOUND' | 'BARCODE_CONFLICT' | 'FAMILY_NOT_FOUND'
   | 'INSUFFICIENT_STOCK' | 'INVALID_QUANTITY' | 'FAMILY_INACTIVE'
   | 'DUPLICATE_FAMILY' | 'AUTH_REQUIRED' | 'MOVEMENT_NOT_FOUND'
+  | 'FAMILY_HAS_MOVEMENTS'
 
 export interface ApiError { error: ApiErrorCode; message: string }
 

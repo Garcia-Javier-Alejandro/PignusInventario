@@ -4,6 +4,8 @@ import { useFamilyById, usePatchFamily } from '../../hooks/useFamilies'
 import { useMovements } from '../../hooks/useMovements'
 import ManualAdjustModal from '../../components/ManualAdjustModal'
 import MovementEditModal from '../../components/MovementEditModal'
+import FamilyEditModal from '../../components/FamilyEditModal'
+import FamilyDeleteModal from '../../components/FamilyDeleteModal'
 import AlternativesList from '../../components/AlternativesList'
 import type { InventoryMovement } from '../../types'
 
@@ -17,6 +19,8 @@ export default function FamilyDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [showAdjust, setShowAdjust] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
+  const [showDelete, setShowDelete] = useState(false)
   const [editMovement, setEditMovement] = useState<InventoryMovement | null>(null)
 
   const { data: family, isLoading } = useFamilyById(id!)
@@ -36,6 +40,8 @@ export default function FamilyDetail() {
         </span>
         <span className="toolbar-right">
           <button className="btn btn--ghost btn--xs" onClick={() => setShowAdjust(true)}>Ajuste</button>
+          <button className="iconbtn" onClick={() => setShowEdit(true)} aria-label="Editar" title="Editar">✎</button>
+          <button className="iconbtn iconbtn--danger" onClick={() => setShowDelete(true)} aria-label="Borrar" title="Borrar">🗑</button>
         </span>
       </div>
 
@@ -125,6 +131,18 @@ export default function FamilyDetail() {
         <MovementEditModal
           movement={{ ...editMovement, brand: family.brand, material: family.material, brand_color_name: family.brand_color_name }}
           onClose={() => setEditMovement(null)}
+        />
+      )}
+
+      {showEdit && (
+        <FamilyEditModal family={family} onClose={() => setShowEdit(false)} />
+      )}
+
+      {showDelete && (
+        <FamilyDeleteModal
+          family={family}
+          onClose={() => setShowDelete(false)}
+          onDeleted={() => navigate('/families')}
         />
       )}
     </div>

@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { useDashboard } from '../../hooks/useDashboard'
-import BarcodeAdminModal from '../../components/BarcodeAdminModal'
 import ImportModal from '../../components/ImportModal'
 import ColorDot from '../../components/ColorDot'
 
 export default function Dashboard() {
   const { data, isLoading, isError } = useDashboard()
-  const [showBarcodes, setShowBarcodes] = useState(false)
   const [showImport, setShowImport] = useState(false)
 
   if (isLoading) return <div className="main-loading"><span className="spinner" /></div>
@@ -99,13 +97,9 @@ export default function Dashboard() {
           <button type="button" className="btn btn--secondary" onClick={() => setShowImport(true)}>
             Importar inventario inicial
           </button>
-          <button type="button" className="btn btn--secondary" onClick={() => setShowBarcodes(true)}>
-            Códigos de barras
-          </button>
         </div>
       </details>
 
-      {showBarcodes && <BarcodeAdminModal onClose={() => setShowBarcodes(false)} />}
       {showImport && <ImportModal onClose={() => setShowImport(false)} />}
     </div>
   )
