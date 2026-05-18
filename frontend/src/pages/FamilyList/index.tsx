@@ -1,53 +1,46 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useFamilies } from '../../hooks/useFamilies'
-import ColorDot from '../../components/ColorDot'
-import type { FilamentFamily } from '../../types'
+import { VISUAL_COLORS } from '../../lib/visualColors'
+import type { FilamentFamily, NormalizedVisualColor } from '../../types'
 
-type SortKey = 'color' | 'name' | 'stock' | 'threshold' | 'active'
+type SortKey = 'brand' | 'material' | 'color'
 
 const COMPARATORS: Record<SortKey, (a: FilamentFamily, b: FilamentFamily) => number> = {
-  color: (a, b) => a.normalized_visual_color.localeCompare(b.normalized_visual_color),
-  name: (a, b) =>
+  brand: (a, b) =>
     a.brand.localeCompare(b.brand) ||
     a.material.localeCompare(b.material) ||
     a.brand_color_name.localeCompare(b.brand_color_name),
-  stock: (a, b) => a.current_quantity - b.current_quantity,
-  threshold: (a, b) => a.reorder_threshold - b.reorder_threshold,
-  active: (a, b) => Number(b.active) - Number(a.active),
+  material: (a, b) =>
+    a.material.localeCompare(b.material) ||
+    a.brand.localeCompare(b.brand) ||
+    a.brand_color_name.localeCompare(b.brand_color_name),
+  color: (a, b) =>
+    a.normalized_visual_color.localeCompare(b.normalized_visual_color) ||
+    a.brand_color_name.localeCompare(b.brand_color_name),
 }
+
+const SWATCH_MAP = new Map(VISUAL_COLORS.map((c) => [c.value, c.swatch] as const))
 
 export default function FamilyList() {
   const navigate = useNavigate()
-  const [search, setSearch] = useState('')
-  const [lowStockOnly, setLowStockOnly] = useState(false)
   const [sortBy, setSortBy] = useState<SortKey | null>(null)
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [lowStockOnly, setLowStockOnly] = useState(false)
 
   const { data: families, isLoading } = useFamilies({
-    search: search || undefined,
     low_stock_only: lowStockOnly || undefined,
   })
 
   const sorted = useMemo(() => {
     if (!families || !sortBy) return families
-    const arr = [...families].sort(COMPARATORS[sortBy])
-    return sortDir === 'desc' ? arr.reverse() : arr
-  }, [families, sortBy, sortDir])
+    return [...families].sort(COMPARATORS[sortBy])
+  }, [families, sortBy])
 
-  const toggleSort = (key: SortKey) => {
-    if (sortBy === key) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setSortBy(key)
-      setSortDir('asc')
-    }
-  }
-
-  const sortableClass = (key: SortKey) => `th--sortable${sortBy === key ? (sortDir === 'asc' ? ' th--sort-asc' : ' th--sort-desc') : ''}`
+  const lowStockCount = families?.filter((f) => f.is_low_stock).length ?? 0
+  const total = families?.length ?? 0
 
   return (
-    <div className="flow-page">
+    <div className="flow-page family-list-page">
       <div className="toolbar">
         <span className="toolbar-left">Inventario</span>
         <span className="toolbar-right">
@@ -57,65 +50,97 @@ export default function FamilyList() {
         </span>
       </div>
 
+      <div className="family-filter-row">
+        <span className="family-filter-row__label">Ordenar por</span>
+        <SortPill label="Marca" active={sortBy === 'brand'} onClick={() => setSortBy(sortBy === 'brand' ? null : 'brand')} />
+        <SortPill label="Material" active={sortBy === 'material'} onClick={() => setSortBy(sortBy === 'material' ? null : 'material')} />
+        <SortPill label="Color" active={sortBy === 'color'} onClick={() => setSortBy(sortBy === 'color' ? null : 'color')} />
+        <button
+          type="button"
+          className={`stock-bajo-pill${lowStockOnly ? ' stock-bajo-pill--active' : ''}`}
+          onClick={() => setLowStockOnly(!lowStockOnly)}
+        >
+          <span>Stock bajo</span>
+          {lowStockOnly && total > 0 && <span className="stock-bajo-pill__count">· {total}</span>}
+          {!lowStockOnly && lowStockCount > 0 && <span className="stock-bajo-pill__count">· {lowStockCount}</span>}
+        </button>
+      </div>
+
       {isLoading && <div className="main-loading"><span className="spinner" /></div>}
 
-      {sorted && (
-        <div className="table-wrap">
-          <table className="orders-table">
-            <thead>
-              <tr>
-                <th className={sortableClass('color')} onClick={() => toggleSort('color')} title="Ordenar por color">
-                  <ColorDot color="MULTICOLOR" />
-                </th>
-                <th className={sortableClass('name')} onClick={() => toggleSort('name')}>Filamento</th>
-                <th className={sortableClass('stock')} onClick={() => toggleSort('stock')}>Stock</th>
-                <th className={sortableClass('threshold')} onClick={() => toggleSort('threshold')}>Umbral</th>
-                <th className={sortableClass('active')} onClick={() => toggleSort('active')}>Activo</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sorted.map((f) => (
-                <tr
-                  key={f.id}
-                  className={f.is_low_stock ? 'row--low-stock' : ''}
-                  onClick={() => navigate(`/families/${f.id}`)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <td><ColorDot color={f.normalized_visual_color} /></td>
-                  <td>
-                    <div className="family-name">{f.brand} {f.material}</div>
-                    <div className="family-color">{f.brand_color_name}</div>
-                  </td>
-                  <td style={{ color: f.is_low_stock ? 'var(--err)' : undefined, fontWeight: 'var(--weight-semi)' }}>
-                    {f.current_quantity}
-                  </td>
-                  <td>{f.reorder_threshold}</td>
-                  <td style={{ color: f.active ? undefined : 'var(--ink-3)' }}>
-                    {f.active ? 'Sí' : 'No'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {sorted && sorted.length > 0 && (
+        <div className="filament-card-list">
+          {sorted.map((f) => (
+            <FilamentCard key={f.id} family={f} onOpen={() => navigate(`/families/${f.id}`)} />
+          ))}
         </div>
       )}
 
       {sorted?.length === 0 && !isLoading && (
-        <p className="empty-state">No hay filamentos. <button className="link-btn" onClick={() => navigate('/families/new')}>Crear el primero</button></p>
+        <p className="empty-state">
+          {lowStockOnly
+            ? 'No hay filamentos con stock bajo.'
+            : <>No hay filamentos. <button className="link-btn" onClick={() => navigate('/families/new')}>Crear el primero</button></>}
+        </p>
       )}
-
-      <div className="family-filters-bottom">
-        <input
-          type="search"
-          placeholder="Buscar marca, material, color..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <button
-          className={`btn btn--xs ${lowStockOnly ? 'btn--primary' : 'btn--ghost'}`}
-          onClick={() => setLowStockOnly(!lowStockOnly)}
-        >Stock bajo</button>
-      </div>
     </div>
+  )
+}
+
+function SortPill({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className={`sort-pill${active ? ' sort-pill--active' : ''}`}
+      onClick={onClick}
+    >
+      {label}
+      {active && (
+        <svg width="9" height="9" viewBox="0 0 9 9" fill="none" aria-hidden="true">
+          <path d="M2 3l2.5 2.5L7 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )}
+    </button>
+  )
+}
+
+function FilamentCard({ family: f, onOpen }: { family: FilamentFamily; onOpen: () => void }) {
+  const swatch = SWATCH_MAP.get(f.normalized_visual_color as NormalizedVisualColor) ?? '#ddd'
+  // Progress bar: stock vs threshold*2 so the bar reaches 100% at twice the
+  // minimum, and is exactly half-full when stock == threshold.
+  const denom = Math.max(f.reorder_threshold * 2, 1)
+  const pct = Math.min(1, f.current_quantity / denom)
+  const danger = f.is_low_stock
+
+  return (
+    <button type="button" className="filament-card" onClick={onOpen}>
+      <span
+        className={`filament-card__ball${f.normalized_visual_color === 'WHITE' ? ' filament-card__ball--has-border' : ''}`}
+        style={{ background: swatch }}
+        aria-hidden="true"
+      />
+      <div className="filament-card__body">
+        <div className="filament-card__name">{f.brand} {f.material}</div>
+        <div className="filament-card__variant">{f.brand_color_name}</div>
+        <div className="filament-card__bar">
+          <span
+            className="filament-card__bar-fill"
+            style={{
+              width: `${pct * 100}%`,
+              background: danger ? 'var(--err)' : 'var(--ok)',
+            }}
+          />
+        </div>
+      </div>
+      <div className="filament-card__right">
+        <div
+          className="filament-card__stock"
+          style={{ color: danger ? 'var(--err)' : 'var(--ink)' }}
+        >
+          {f.current_quantity}
+        </div>
+        <div className="filament-card__min">de {f.reorder_threshold} min</div>
+      </div>
+    </button>
   )
 }

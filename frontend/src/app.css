@@ -729,6 +729,167 @@
   margin-bottom: var(--space-4);
 }
 
+/* Inventario list — Alt 3 layout: top filter/sort pill row, card list. */
+.family-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-4);
+}
+
+.family-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+
+.family-filter-row__label {
+  font-weight: 600;
+  opacity: 0.7;
+  margin-right: 2px;
+}
+
+.sort-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 9px;
+  border-radius: 99px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sort-pill--active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.stock-bajo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 11px;
+  border-radius: 99px;
+  background: transparent;
+  border: 1px solid rgba(194, 59, 34, 0.3);
+  color: var(--err);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.stock-bajo-pill--active {
+  background: rgba(194, 59, 34, 0.1);
+}
+
+.stock-bajo-pill__count {
+  font-weight: 800;
+  opacity: 0.85;
+}
+
+.filament-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filament-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 11px 12px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+}
+
+.filament-card:hover {
+  background: var(--cream-hover);
+}
+
+.filament-card__ball {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-clip: padding-box;
+  box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.filament-card__ball--has-border {
+  box-shadow: inset 0 0 0 1px var(--border-mid), inset 0 -4px 8px rgba(0, 0, 0, 0.06);
+}
+
+.filament-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.filament-card__name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.filament-card__variant {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 1px;
+}
+
+.filament-card__bar {
+  margin-top: 6px;
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(28, 24, 19, 0.06);
+  overflow: hidden;
+}
+
+.filament-card__bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.2s ease;
+}
+
+.filament-card__right {
+  text-align: right;
+  flex-shrink: 0;
+  min-width: 48px;
+}
+
+.filament-card__stock {
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.filament-card__min {
+  font-size: 10px;
+  color: var(--ink-3);
+  margin-top: 2px;
+  font-weight: 600;
+}
+
 /* Dashboard — Alt 3 layout: hero low-stock card, mini KPI row, recent
    movements list. Uses .movement-list / .movement-row already defined
    in the FamilyDetail block below. */
