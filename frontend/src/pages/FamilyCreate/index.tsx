@@ -39,14 +39,14 @@ export default function FamilyCreate() {
       }
       navigate(`/families/${family.id}`)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error al crear familia')
+      setError(err instanceof Error ? err.message : 'Error al crear filamento')
     }
   }
 
   return (
     <div className="flow-page">
       <div className="toolbar">
-        <span className="toolbar-left">Nueva familia de filamento</span>
+        <span className="toolbar-left">Nuevo filamento</span>
       </div>
 
       {pendingBarcode && (
@@ -104,7 +104,7 @@ export default function FamilyCreate() {
             Cancelar
           </button>
           <button type="submit" className="btn btn--primary btn--expand" disabled={create.isPending}>
-            {create.isPending ? <span className="spinner" /> : 'Crear familia'}
+            {create.isPending ? <span className="spinner" /> : 'Crear filamento'}
           </button>
         </div>
       </form>

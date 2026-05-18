@@ -57,7 +57,7 @@ export default function BarcodeAdminModal({ onClose }: Props) {
               <thead>
                 <tr>
                   <th>Código</th>
-                  <th>Familia</th>
+                  <th>Filamento</th>
                   <th></th>
                 </tr>
               </thead>
@@ -123,7 +123,7 @@ function ReassignPicker({ mapping, onPick, onCancel, isPending }: {
 
         <input
           type="search"
-          placeholder="Buscar familia destino..."
+          placeholder="Buscar filamento destino..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           autoFocus

@@ -15,11 +15,11 @@ export default function Dashboard() {
     <div>
       <div className="kpi-strip">
         <div className="kpi-card">
-          <div className="kpi-card__eyebrow">Total familias</div>
+          <div className="kpi-card__eyebrow">Insumos activos totales</div>
           <div className="kpi-card__value">{data?.total_families ?? '—'}</div>
         </div>
         <div className="kpi-card">
-          <div className="kpi-card__eyebrow">Stock bajo</div>
+          <div className="kpi-card__eyebrow">Insumos con stock bajo</div>
           <div className="kpi-card__value" style={{ color: data?.low_stock_count ? 'var(--err)' : undefined }}>
             {data?.low_stock_count ?? '—'}
           </div>
@@ -28,12 +28,12 @@ export default function Dashboard() {
 
       {data && data.low_stock.length > 0 && (
         <section className="dashboard-section">
-          <h2 className="dashboard-section__title">Stock bajo</h2>
+          <h2 className="dashboard-section__title">Insumos con stock bajo</h2>
           <div className="table-wrap">
             <table className="orders-table">
               <thead>
                 <tr>
-                  <th>Familia</th>
+                  <th>Filamento</th>
                   <th>Stock</th>
                   <th>Umbral</th>
                 </tr>
@@ -63,8 +63,8 @@ export default function Dashboard() {
             <table className="orders-table">
               <thead>
                 <tr>
-                  <th>Familia</th>
-                  <th>Tipo</th>
+                  <th>Filamento</th>
+                  <th>Acción</th>
                   <th>Δ</th>
                 </tr>
               </thead>

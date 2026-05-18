@@ -52,7 +52,7 @@ export default function MovementHistory() {
             <table className="orders-table">
               <thead>
                 <tr>
-                  <th>Familia</th>
+                  <th>Filamento</th>
                   <th>Tipo</th>
                   <th>Δ</th>
                   <th>Notas</th>

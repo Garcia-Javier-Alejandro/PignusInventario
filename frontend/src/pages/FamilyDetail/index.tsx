@@ -24,7 +24,7 @@ export default function FamilyDetail() {
   const patch = usePatchFamily()
 
   if (isLoading) return <div className="main-loading"><span className="spinner" /></div>
-  if (!family) return <div className="main-error">Familia no encontrada</div>
+  if (!family) return <div className="main-error">Filamento no encontrado</div>
 
   const toggleActive = () => patch.mutate({ id: family.id, body: { active: !family.active } })
 

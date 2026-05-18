@@ -132,7 +132,7 @@ export default function ImportModal({ onClose }: Props) {
               <div className="table-wrap" style={{ marginTop: 'var(--space-3)' }}>
                 <table className="orders-table">
                   <thead>
-                    <tr><th>#</th><th>Familia</th><th>Color</th><th>Qty</th><th>Activo</th><th>Estado</th></tr>
+                    <tr><th>#</th><th>Filamento</th><th>Color</th><th>Qty</th><th>Activo</th><th>Estado</th></tr>
                   </thead>
                   <tbody>
                     {parsed.map((p, i) => (

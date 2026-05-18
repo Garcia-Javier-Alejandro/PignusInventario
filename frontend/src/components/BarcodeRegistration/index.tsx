@@ -38,11 +38,11 @@ export default function BarcodeRegistration({ barcode, onRegistered, onClose }: 
         </div>
 
         <p className="modal-code"><code>{barcode}</code></p>
-        <p className="modal-hint">Asociar a una familia existente o crear una nueva</p>
+        <p className="modal-hint">Asociar a un filamento existente o crear uno nuevo</p>
 
         <input
           type="search"
-          placeholder="Buscar familia..."
+          placeholder="Buscar filamento..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           autoFocus
@@ -68,7 +68,7 @@ export default function BarcodeRegistration({ barcode, onRegistered, onClose }: 
           className="btn btn--secondary btn--expand"
           onClick={() => navigate(`/families/new?barcode=${encodeURIComponent(barcode)}`)}
         >
-          + Crear nueva familia
+          + Crear nuevo filamento
         </button>
       </div>
     </div>

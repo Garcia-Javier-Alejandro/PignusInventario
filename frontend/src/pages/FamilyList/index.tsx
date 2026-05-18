@@ -48,7 +48,7 @@ export default function FamilyList() {
         <span className="toolbar-left">Inventario</span>
         <span className="toolbar-right">
           <button className="btn btn--primary btn--xs" onClick={() => navigate('/families/new')}>
-            + Nueva
+            + Nuevo
           </button>
         </span>
       </div>
@@ -85,7 +85,7 @@ export default function FamilyList() {
           <table className="orders-table">
             <thead>
               <tr>
-                <th>Familia</th>
+                <th>Filamento</th>
                 <th>Stock</th>
                 <th>Umbral</th>
                 <th>Activo</th>
@@ -145,7 +145,7 @@ export default function FamilyList() {
       )}
 
       {families?.length === 0 && !isLoading && (
-        <p className="empty-state">No hay familias. <button className="link-btn" onClick={() => navigate('/families/new')}>Crear la primera</button></p>
+        <p className="empty-state">No hay filamentos. <button className="link-btn" onClick={() => navigate('/families/new')}>Crear el primero</button></p>
       )}
 
       {adjustFamily && (
