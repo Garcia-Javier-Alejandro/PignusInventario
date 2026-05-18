@@ -1,7 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import DomainNav from './components/DomainNav'
-import PageTabs from './components/PageTabs'
+import BottomNav from './components/BottomNav'
 import Footer from './components/Footer'
 import Dashboard from './pages/Dashboard'
 import ReceiveFlow from './pages/ReceiveFlow'
@@ -21,7 +21,6 @@ export default function App() {
     <div className="pignus-app">
       <Header />
       <DomainNav />
-      {onFilamento && <PageTabs />}
       <main className="main">
         <Routes>
           <Route path="/" element={<Dashboard />} />
@@ -33,10 +32,11 @@ export default function App() {
           <Route path="/movements" element={<MovementHistory />} />
           <Route path="/packaging" element={<UnderConstruction title="Packaging" />} />
           <Route path="/consumibles" element={<UnderConstruction title="Consumibles" />} />
-          <Route path="/productos-terminados" element={<UnderConstruction title="Productos terminados" />} />
+          <Route path="/productos-terminados" element={<UnderConstruction title="Productos" />} />
         </Routes>
       </main>
       <Footer />
+      {onFilamento && <BottomNav />}
     </div>
   )
 }

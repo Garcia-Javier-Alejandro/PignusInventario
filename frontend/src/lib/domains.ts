@@ -10,7 +10,7 @@ export const DOMAINS: DomainDef[] = [
   { path: '/',                       label: 'Filamento',            built: true },
   { path: '/packaging',              label: 'Packaging',            built: false },
   { path: '/consumibles',            label: 'Consumibles',          built: false },
-  { path: '/productos-terminados',   label: 'Productos terminados', built: false },
+  { path: '/productos-terminados',   label: 'Productos',            built: false },
 ]
 
 const PLACEHOLDER_PATHS = DOMAINS.filter((d) => !d.built).map((d) => d.path)

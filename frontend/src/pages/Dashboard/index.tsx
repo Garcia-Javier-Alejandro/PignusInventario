@@ -60,10 +60,15 @@ export default function Dashboard() {
     `th--sortable${actSort.key === key ? (actSort.dir === 'asc' ? ' th--sort-asc' : ' th--sort-desc') : ''}`
 
   if (isLoading) return <div className="main-loading"><span className="spinner" /></div>
-  if (isError) return <div className="main-error">Error al cargar el dashboard</div>
 
   return (
     <div>
+      {isError && (
+        <div className="main-error" style={{ marginBottom: 'var(--space-4)' }}>
+          Error al cargar el dashboard
+        </div>
+      )}
+
       <div className="kpi-strip">
         <div className="kpi-card">
           <div className="kpi-card__eyebrow">Insumos activos totales</div>
