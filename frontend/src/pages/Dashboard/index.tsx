@@ -46,10 +46,8 @@ export default function Dashboard() {
                   <tr key={f.id}>
                     <td><ColorDot color={f.normalized_visual_color} /></td>
                     <td>{f.brand} {f.material} {f.brand_color_name}</td>
-                    <td>
-                      <span className={`pill ${f.current_quantity === 0 ? 'pill--err' : 'pill--pending'}`}>
-                        {f.current_quantity}
-                      </span>
+                    <td style={{ color: 'var(--err)', fontWeight: 'var(--weight-semi)' }}>
+                      {f.current_quantity}
                     </td>
                     <td>{f.reorder_threshold}</td>
                   </tr>

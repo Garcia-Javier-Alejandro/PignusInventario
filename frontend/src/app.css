@@ -588,6 +588,18 @@
   font-size: var(--text-sm);
 }
 
+/* Import modal instructions */
+.import-instructions {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  padding-left: var(--space-5);
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.import-instructions li {
+  margin-bottom: var(--space-1);
+}
+
 /* Family edit modal */
 .barcode-row {
   display: flex;

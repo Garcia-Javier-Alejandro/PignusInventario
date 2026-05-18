@@ -32,8 +32,14 @@ interface RowResult {
   index: number
   ok: boolean
   family_id?: string
-  status?: 'created' | 'duplicate'
+  status?: 'created' | 'updated'
   error?: string
+}
+
+function toNonNegInt(v: unknown, fallback: number): number {
+  const n = typeof v === 'number' ? v : Number(v)
+  if (!Number.isFinite(n) || n < 0) return fallback
+  return Math.floor(n)
 }
 
 const importer = new Hono<{ Bindings: Env }>()
@@ -56,9 +62,9 @@ importer.post('/', async (c) => {
     const material = String(r.material ?? '').trim()
     const colorName = String(r.brand_color_name ?? '').trim()
     const visualColor = normalizeColor(String(r.normalized_visual_color ?? ''))
-    const qty = Number.isInteger(r.initial_quantity) ? r.initial_quantity : parseInt(String(r.initial_quantity ?? '0'), 10)
+    const qty = toNonNegInt(r.initial_quantity, -1)
     const active = r.active === false ? 0 : 1
-    const threshold = Number.isInteger(r.reorder_threshold) ? r.reorder_threshold! : 3
+    const threshold = toNonNegInt(r.reorder_threshold, 3)
 
     if (!brand || !material || !colorName) {
       result.error = 'Marca, material y color son obligatorios'
@@ -68,7 +74,7 @@ importer.post('/', async (c) => {
       result.error = `Color visual inválido: "${visualColor}"`
       results.push(result); continue
     }
-    if (!Number.isFinite(qty) || qty < 0) {
+    if (qty < 0) {
       result.error = `Cantidad inválida: ${r.initial_quantity}`
       results.push(result); continue
     }
@@ -77,16 +83,22 @@ importer.post('/', async (c) => {
       'SELECT id FROM filament_families WHERE brand = ? AND material = ? AND brand_color_name = ?'
     ).bind(brand, material, colorName).first<{ id: string }>()
 
+    const now = new Date().toISOString()
+
     if (existing) {
+      // Update editable fields (threshold + active) so a re-import fixes them.
+      // Do NOT touch stock, color name, or visual color.
+      await c.env.DB.prepare(
+        'UPDATE filament_families SET reorder_threshold = ?, active = ?, updated_at = ? WHERE id = ?'
+      ).bind(threshold, active, now, existing.id).run()
       result.ok = true
       result.family_id = existing.id
-      result.status = 'duplicate'
+      result.status = 'updated'
       results.push(result)
       continue
     }
 
     const id = crypto.randomUUID()
-    const now = new Date().toISOString()
 
     try {
       const batch = [
@@ -123,10 +135,10 @@ importer.post('/', async (c) => {
   }
 
   const created = results.filter((r) => r.status === 'created').length
-  const duplicates = results.filter((r) => r.status === 'duplicate').length
+  const updated = results.filter((r) => r.status === 'updated').length
   const errors = results.filter((r) => !r.ok).length
 
-  return c.json({ created, duplicates, errors, results })
+  return c.json({ created, updated, errors, results })
 })
 
 export default importer

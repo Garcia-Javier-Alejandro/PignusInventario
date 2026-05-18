@@ -14,13 +14,13 @@ export interface ImportRowResult {
   index: number
   ok: boolean
   family_id?: string
-  status?: 'created' | 'duplicate'
+  status?: 'created' | 'updated'
   error?: string
 }
 
 export interface ImportResponse {
   created: number
-  duplicates: number
+  updated: number
   errors: number
   results: ImportRowResult[]
 }

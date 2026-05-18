@@ -106,9 +106,20 @@ export default function ImportModal({ onClose }: Props) {
         {!response && (
           <>
             <p className="modal-hint">
-              Pegá filas de tu planilla con 7 columnas: <strong>Marca · Material · Color · Color visual · Cantidad · Umbral · Activo</strong>.
-              Color visual debe ser uno de: {VISUAL_COLORS.map((c) => c.value).join(', ')}.
-              Aceptado: pestañas o comas.
+              Pegá filas de tu planilla con 7 columnas, separadas por <strong>tabulación o coma</strong>:
+            </p>
+            <ol className="import-instructions">
+              <li><strong>Marca</strong> — ej. Grilon</li>
+              <li><strong>Material</strong> — ej. PLA, PETG</li>
+              <li><strong>Color</strong> — nombre del fabricante, ej. "Verde manzana"</li>
+              <li><strong>Color visual</strong> — uno de: {VISUAL_COLORS.map((c) => c.value).join(', ')} (GREY también se acepta)</li>
+              <li><strong>Cantidad</strong> — entero ≥ 0, stock inicial</li>
+              <li><strong>Umbral</strong> — entero ≥ 0, alerta de stock bajo cuando la cantidad cae a este nivel</li>
+              <li><strong>Activo</strong> — TRUE / FALSE (vacío = TRUE)</li>
+            </ol>
+            <p className="modal-hint">
+              Si un filamento ya existe (misma marca + material + color), se <strong>actualizan</strong> umbral y activo;
+              el stock y los nombres se conservan. Esto permite re-importar para corregir umbrales sin borrar el inventario.
             </p>
 
             <textarea
@@ -170,8 +181,8 @@ export default function ImportModal({ onClose }: Props) {
                 <div className="kpi-card__value" style={{ color: 'var(--ok)' }}>{response.created}</div>
               </div>
               <div className="kpi-card">
-                <div className="kpi-card__eyebrow">Duplicadas</div>
-                <div className="kpi-card__value">{response.duplicates}</div>
+                <div className="kpi-card__eyebrow">Actualizadas</div>
+                <div className="kpi-card__value">{response.updated}</div>
               </div>
               <div className="kpi-card">
                 <div className="kpi-card__eyebrow">Errores</div>
