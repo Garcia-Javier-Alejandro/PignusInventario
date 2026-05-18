@@ -20,7 +20,7 @@ export function adjustStock(filament_family_id: string, quantity_delta: number, 
   return api.post(`${BASE}/adjust`, { filament_family_id, quantity_delta, notes })
 }
 
-export function patchMovement(id: string, body: { quantity_delta?: number; notes?: string }): Promise<InventoryMovement> {
+export function patchMovement(id: string, body: { quantity_delta?: number; notes?: string | null }): Promise<InventoryMovement> {
   return api.patch(`${BASE}/${id}`, body)
 }
 

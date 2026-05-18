@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useMovements } from '../../hooks/useMovements'
+import MovementEditModal from '../../components/MovementEditModal'
+import type { InventoryMovement } from '../../types'
 
 const PAGE_SIZE = 50
 const TYPE_LABELS: Record<string, string> = {
@@ -12,6 +14,7 @@ const TYPES = Object.keys(TYPE_LABELS)
 export default function MovementHistory() {
   const [movementType, setMovementType] = useState('')
   const [page, setPage] = useState(0)
+  const [editMovement, setEditMovement] = useState<InventoryMovement | null>(null)
 
   const { data, isLoading } = useMovements({
     movement_type: movementType || undefined,
@@ -55,6 +58,7 @@ export default function MovementHistory() {
                   <th>Notas</th>
                   <th>Por</th>
                   <th>Fecha</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -75,6 +79,9 @@ export default function MovementHistory() {
                     <td className="cell-truncate">{m.notes ?? '—'}</td>
                     <td className="cell-truncate">{m.created_by}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>{new Date(m.created_at).toLocaleDateString('es-AR')}</td>
+                    <td>
+                      <button className="btn btn--ghost btn--xs" onClick={() => setEditMovement(m)}>Editar</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -93,6 +100,10 @@ export default function MovementHistory() {
 
       {data?.movements.length === 0 && !isLoading && (
         <p className="empty-state">No hay movimientos registrados</p>
+      )}
+
+      {editMovement && (
+        <MovementEditModal movement={editMovement} onClose={() => setEditMovement(null)} />
       )}
     </div>
   )

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchMovements, receiveStock, consumeStock, adjustStock } from '../api/movements'
+import { fetchMovements, receiveStock, consumeStock, adjustStock, patchMovement } from '../api/movements'
 
 export function useMovements(params: Parameters<typeof fetchMovements>[0] = {}) {
   return useQuery({
@@ -39,6 +39,19 @@ export function useAdjust() {
   return useMutation({
     mutationFn: ({ familyId, delta, notes }: { familyId: string; delta: number; notes: string }) =>
       adjustStock(familyId, delta, notes),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['families'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['movements'] })
+    },
+  })
+}
+
+export function usePatchMovement() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: { quantity_delta?: number; notes?: string | null } }) =>
+      patchMovement(id, body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['families'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
