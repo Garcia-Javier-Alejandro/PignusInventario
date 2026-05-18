@@ -92,6 +92,14 @@ export default function FamilyDetail() {
           <EditIcon /> Editar
         </button>
         <button
+          className="btn btn--ghost"
+          onClick={toggleActive}
+          disabled={patch.isPending}
+          title={family.active ? 'Desactivar' : 'Activar'}
+        >
+          {family.active ? 'Desactivar' : 'Activar'}
+        </button>
+        <button
           className="btn btn--ghost icon-btn-row"
           onClick={() => setShowDelete(true)}
           title="Borrar"
