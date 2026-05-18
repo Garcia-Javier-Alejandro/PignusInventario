@@ -37,8 +37,8 @@ export default function ConsumeFlow() {
       } else {
         setStep('register')
       }
-    } catch {
-      showToast('Error al buscar código. Intentá de nuevo.')
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : String(e))
     } finally {
       setDetecting(false)
     }

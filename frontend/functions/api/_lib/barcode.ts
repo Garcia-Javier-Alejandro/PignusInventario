@@ -6,12 +6,16 @@ const barcode = new Hono<{ Bindings: Env }>()
 
 barcode.get('/:barcode', async (c) => {
   const barcodeVal = c.req.param('barcode')
+  console.log('[barcode-lookup]', { barcode: barcodeVal, ua: c.req.header('user-agent')?.slice(0, 60) })
 
   const mapping = await c.env.DB.prepare(
     'SELECT filament_family_id FROM barcode_mappings WHERE barcode = ?'
   ).bind(barcodeVal).first<{ filament_family_id: string }>()
 
-  if (!mapping) return c.json({ found: false })
+  if (!mapping) {
+    console.log('[barcode-lookup] not found', { barcode: barcodeVal })
+    return c.json({ found: false })
+  }
 
   const family = await c.env.DB.prepare(`
     SELECT f.*, COALESCE(p.current_quantity, 0) as current_quantity,
@@ -21,7 +25,12 @@ barcode.get('/:barcode', async (c) => {
     WHERE f.id = ?
   `).bind(mapping.filament_family_id).first<FamilyRow>()
 
-  return c.json({ found: true, filament_family: formatFamily(family!) })
+  if (!family) {
+    console.log('[barcode-lookup] orphan mapping', { barcode: barcodeVal, family_id: mapping.filament_family_id })
+    return c.json({ found: false })
+  }
+
+  return c.json({ found: true, filament_family: formatFamily(family) })
 })
 
 barcode.post('/register', async (c) => {

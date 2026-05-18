@@ -12,11 +12,24 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers: { 'Content-Type': 'application/json', ...init?.headers },
     ...init,
   })
+  const text = await res.text()
   if (!res.ok) {
-    const err: ApiError = await res.json()
-    throw new ApiResponseError(err.error, err.message)
+    let parsed: ApiError | null = null
+    try { parsed = JSON.parse(text) } catch { /* not JSON */ }
+    if (parsed?.error) throw new ApiResponseError(parsed.error, parsed.message)
+    throw new ApiResponseError(
+      'UNKNOWN' as ApiErrorCode,
+      `HTTP ${res.status} @ ${path} :: ${text.slice(0, 300)}`,
+    )
   }
-  return res.json() as Promise<T>
+  try {
+    return JSON.parse(text) as T
+  } catch {
+    throw new ApiResponseError(
+      'UNKNOWN' as ApiErrorCode,
+      `HTTP ${res.status} non-JSON @ ${path} :: ${text.slice(0, 300)}`,
+    )
+  }
 }
 
 export const api = {
