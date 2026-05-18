@@ -1316,19 +1316,23 @@
   transform: rotate(90deg);
 }
 
-.debug-body {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-2);
+/* Override PignusUI's .debug-body (which ships a horizontal flex row that
+   pushes the third button off-screen on mobile). Higher specificity + the
+   !important fallback so any cascade order will land on a vertical stack. */
+.debug-section > .debug-body {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: var(--space-2) !important;
   padding-top: var(--space-3);
+  margin-top: 0;
 }
 
-.debug-body .btn {
+.debug-section > .debug-body > .btn {
   width: 100%;
 }
 
-.debug-body .debug-status {
+.debug-section > .debug-body > .debug-status {
   margin-top: var(--space-2);
 }
 
