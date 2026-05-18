@@ -43,7 +43,28 @@ export default function Header() {
       </div>
 
       <nav className="mod-nav">
-        <a href="https://pignuslabs.com.ar/" className="mod-nav__item">Portal</a>
+        <a
+          href="https://pignuslabs.com.ar/"
+          className="mod-nav__item mod-nav__item--icon"
+          aria-label="Portal"
+          title="Portal"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ display: 'block' }}
+            aria-hidden="true"
+          >
+            <path d="M3 11l9-8 9 8" />
+            <path d="M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10" />
+          </svg>
+        </a>
         <a href="https://facturacion.pignuslabs.com.ar/" className="mod-nav__item">Facturación</a>
         <a href="#" className="mod-nav__item mod-nav__item--active">Inventario</a>
         <a href="https://inversiones.pignuslabs.com.ar/" className="mod-nav__item">Inversiones</a>
