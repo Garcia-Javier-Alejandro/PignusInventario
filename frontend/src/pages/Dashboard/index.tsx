@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useDashboard } from '../../hooks/useDashboard'
 import ImportModal from '../../components/ImportModal'
+import WipeAllModal from '../../components/WipeAllModal'
 import ColorDot from '../../components/ColorDot'
 
 export default function Dashboard() {
   const { data, isLoading, isError } = useDashboard()
   const [showImport, setShowImport] = useState(false)
+  const [showWipe, setShowWipe] = useState(false)
 
   if (isLoading) return <div className="main-loading"><span className="spinner" /></div>
   if (isError) return <div className="main-error">Error al cargar el dashboard</div>
@@ -97,10 +99,14 @@ export default function Dashboard() {
           <button type="button" className="btn btn--secondary" onClick={() => setShowImport(true)}>
             Importar inventario inicial
           </button>
+          <button type="button" className="btn btn--danger" onClick={() => setShowWipe(true)}>
+            Borrar todo el inventario
+          </button>
         </div>
       </details>
 
       {showImport && <ImportModal onClose={() => setShowImport(false)} />}
+      {showWipe && <WipeAllModal onClose={() => setShowWipe(false)} />}
     </div>
   )
 }
