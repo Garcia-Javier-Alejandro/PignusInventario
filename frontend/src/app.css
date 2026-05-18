@@ -223,6 +223,27 @@
   align-items: center;
 }
 
+.family-filters-bottom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.family-filters-bottom input[type="search"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.orders-table th.th--sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.orders-table th.th--sortable:hover {
+  color: var(--blue);
+}
+
 .filter-divider {
   width: 1px;
   height: 20px;

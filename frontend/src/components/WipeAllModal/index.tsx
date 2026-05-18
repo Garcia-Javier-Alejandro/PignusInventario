@@ -6,7 +6,7 @@ interface Props {
   onClose: () => void
 }
 
-const CONFIRM_PHRASE = 'BORRAR TODO'
+const CONFIRM_PHRASE = 'BORRAR'
 
 export default function WipeAllModal({ onClose }: Props) {
   const qc = useQueryClient()

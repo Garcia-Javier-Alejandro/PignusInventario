@@ -1,47 +1,51 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useFamilies, usePatchFamily } from '../../hooks/useFamilies'
-import ManualAdjustModal from '../../components/ManualAdjustModal'
-import ColorPalette from '../../components/ColorPalette'
+import { useFamilies } from '../../hooks/useFamilies'
 import ColorDot from '../../components/ColorDot'
-import type { FilamentFamily, NormalizedVisualColor } from '../../types'
+import type { FilamentFamily } from '../../types'
 
-const MATERIALS = ['PLA', 'PETG', 'ABS', 'TPU', 'ASA', 'Nylon', 'PC']
+type SortKey = 'color' | 'name' | 'stock' | 'threshold' | 'active'
+
+const COMPARATORS: Record<SortKey, (a: FilamentFamily, b: FilamentFamily) => number> = {
+  color: (a, b) => a.normalized_visual_color.localeCompare(b.normalized_visual_color),
+  name: (a, b) =>
+    a.brand.localeCompare(b.brand) ||
+    a.material.localeCompare(b.material) ||
+    a.brand_color_name.localeCompare(b.brand_color_name),
+  stock: (a, b) => a.current_quantity - b.current_quantity,
+  threshold: (a, b) => a.reorder_threshold - b.reorder_threshold,
+  active: (a, b) => Number(b.active) - Number(a.active),
+}
 
 export default function FamilyList() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
-  const [material, setMaterial] = useState('')
-  const [visualColor, setVisualColor] = useState<NormalizedVisualColor | ''>('')
   const [lowStockOnly, setLowStockOnly] = useState(false)
-  const [adjustFamily, setAdjustFamily] = useState<FilamentFamily | null>(null)
-  const [editCell, setEditCell] = useState<{ id: string; field: 'reorder_threshold' | 'notes' } | null>(null)
-  const [editValue, setEditValue] = useState('')
+  const [sortBy, setSortBy] = useState<SortKey | null>(null)
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
   const { data: families, isLoading } = useFamilies({
     search: search || undefined,
-    material: material || undefined,
-    visual_color: visualColor || undefined,
     low_stock_only: lowStockOnly || undefined,
   })
-  const patch = usePatchFamily()
 
-  const startEdit = (family: FilamentFamily, field: 'reorder_threshold' | 'notes') => {
-    setEditCell({ id: family.id, field })
-    setEditValue(field === 'reorder_threshold' ? String(family.reorder_threshold) : (family.notes ?? ''))
+  const sorted = useMemo(() => {
+    if (!families || !sortBy) return families
+    const arr = [...families].sort(COMPARATORS[sortBy])
+    return sortDir === 'desc' ? arr.reverse() : arr
+  }, [families, sortBy, sortDir])
+
+  const toggleSort = (key: SortKey) => {
+    if (sortBy === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortBy(key)
+      setSortDir('asc')
+    }
   }
 
-  const commitEdit = async (family: FilamentFamily) => {
-    if (!editCell) return
-    const body = editCell.field === 'reorder_threshold'
-      ? { reorder_threshold: Math.max(0, parseInt(editValue) || 0) }
-      : { notes: editValue || null }
-    await patch.mutateAsync({ id: family.id, body })
-    setEditCell(null)
-  }
-
-  const toggleActive = (family: FilamentFamily) =>
-    patch.mutate({ id: family.id, body: { active: !family.active } })
+  const sortArrow = (key: SortKey) => (sortBy === key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '')
+  const sortableClass = (key: SortKey) => `th--sortable${sortBy === key ? (sortDir === 'asc' ? ' th--sort-asc' : ' th--sort-desc') : ''}`
 
   return (
     <div className="flow-page">
@@ -54,48 +58,24 @@ export default function FamilyList() {
         </span>
       </div>
 
-      <div className="family-filters">
-        <input
-          type="search"
-          placeholder="Buscar marca, material, color..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <div className="family-filter-pills">
-          {MATERIALS.map((m) => (
-            <button
-              key={m}
-              className={`btn btn--xs ${material === m ? 'btn--primary' : 'btn--ghost'}`}
-              onClick={() => setMaterial(material === m ? '' : m)}
-            >{m}</button>
-          ))}
-          <span className="filter-divider" />
-          <button
-            className={`btn btn--xs ${lowStockOnly ? 'btn--primary' : 'btn--ghost'}`}
-            onClick={() => setLowStockOnly(!lowStockOnly)}
-          >Stock bajo</button>
-        </div>
-
-        <ColorPalette value={visualColor} onChange={setVisualColor} allowClear />
-      </div>
-
       {isLoading && <div className="main-loading"><span className="spinner" /></div>}
 
-      {families && (
+      {sorted && (
         <div className="table-wrap">
           <table className="orders-table">
             <thead>
               <tr>
-                <th></th>
-                <th>Filamento</th>
-                <th>Stock</th>
-                <th>Umbral</th>
-                <th>Activo</th>
-                <th></th>
+                <th className={sortableClass('color')} onClick={() => toggleSort('color')} title="Ordenar por color">
+                  <ColorDot color="MULTICOLOR" />{sortArrow('color')}
+                </th>
+                <th className={sortableClass('name')} onClick={() => toggleSort('name')}>Filamento{sortArrow('name')}</th>
+                <th className={sortableClass('stock')} onClick={() => toggleSort('stock')}>Stock{sortArrow('stock')}</th>
+                <th className={sortableClass('threshold')} onClick={() => toggleSort('threshold')}>Umbral{sortArrow('threshold')}</th>
+                <th className={sortableClass('active')} onClick={() => toggleSort('active')}>Activo{sortArrow('active')}</th>
               </tr>
             </thead>
             <tbody>
-              {families.map((f) => (
+              {sorted.map((f) => (
                 <tr
                   key={f.id}
                   className={f.is_low_stock ? 'row--low-stock' : ''}
@@ -107,38 +87,12 @@ export default function FamilyList() {
                     <div className="family-name">{f.brand} {f.material}</div>
                     <div className="family-color">{f.brand_color_name}</div>
                   </td>
-                  <td>
-                    <span className={`pill ${f.current_quantity === 0 ? 'pill--pending' : f.is_low_stock ? 'pill--pending' : 'pill--ok'}`}>
-                      {f.current_quantity}
-                    </span>
+                  <td style={{ color: f.is_low_stock ? 'var(--err)' : undefined, fontWeight: 'var(--weight-semi)' }}>
+                    {f.current_quantity}
                   </td>
-                  <td onClick={(e) => { e.stopPropagation(); startEdit(f, 'reorder_threshold') }}>
-                    {editCell?.id === f.id && editCell.field === 'reorder_threshold' ? (
-                      <input
-                        className="inline-edit"
-                        type="number"
-                        inputMode="numeric"
-                        value={editValue}
-                        autoFocus
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onBlur={() => commitEdit(f)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') commitEdit(f); if (e.key === 'Escape') setEditCell(null) }}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      <span className="editable-cell">{f.reorder_threshold}</span>
-                    )}
-                  </td>
-                  <td onClick={(e) => { e.stopPropagation(); toggleActive(f) }}>
-                    <span className={`pill ${f.active ? 'pill--ok' : ''}`}>
-                      {f.active ? 'Sí' : 'No'}
-                    </span>
-                  </td>
-                  <td onClick={(e) => e.stopPropagation()}>
-                    <button
-                      className="btn btn--ghost btn--xs"
-                      onClick={() => setAdjustFamily(f)}
-                    >Ajuste</button>
+                  <td>{f.reorder_threshold}</td>
+                  <td style={{ color: f.active ? undefined : 'var(--ink-3)' }}>
+                    {f.active ? 'Sí' : 'No'}
                   </td>
                 </tr>
               ))}
@@ -147,13 +101,22 @@ export default function FamilyList() {
         </div>
       )}
 
-      {families?.length === 0 && !isLoading && (
+      {sorted?.length === 0 && !isLoading && (
         <p className="empty-state">No hay filamentos. <button className="link-btn" onClick={() => navigate('/families/new')}>Crear el primero</button></p>
       )}
 
-      {adjustFamily && (
-        <ManualAdjustModal family={adjustFamily} onClose={() => setAdjustFamily(null)} />
-      )}
+      <div className="family-filters-bottom">
+        <input
+          type="search"
+          placeholder="Buscar marca, material, color..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <button
+          className={`btn btn--xs ${lowStockOnly ? 'btn--primary' : 'btn--ghost'}`}
+          onClick={() => setLowStockOnly(!lowStockOnly)}
+        >Stock bajo</button>
+      </div>
     </div>
   )
 }

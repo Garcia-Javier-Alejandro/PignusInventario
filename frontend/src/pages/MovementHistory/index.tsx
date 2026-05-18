@@ -58,7 +58,6 @@ export default function MovementHistory() {
                   <th>Tipo</th>
                   <th>Δ</th>
                   <th>Notas</th>
-                  <th>Por</th>
                   <th>Fecha</th>
                   <th></th>
                 </tr>
@@ -80,7 +79,6 @@ export default function MovementHistory() {
                       {m.quantity_delta > 0 ? '+' : ''}{m.quantity_delta}
                     </td>
                     <td className="cell-truncate">{m.notes ?? '—'}</td>
-                    <td className="cell-truncate">{m.created_by}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>{new Date(m.created_at).toLocaleDateString('es-AR')}</td>
                     <td>
                       <button className="btn btn--ghost btn--xs" onClick={() => setEditMovement(m)}>Editar</button>
