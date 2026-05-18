@@ -4,6 +4,24 @@ import { formatFamily } from './types'
 
 const barcode = new Hono<{ Bindings: Env }>()
 
+barcode.get('/', async (c) => {
+  const rows = await c.env.DB.prepare(`
+    SELECT b.barcode, b.created_at, b.filament_family_id,
+           f.brand, f.material, f.brand_color_name
+    FROM barcode_mappings b
+    JOIN filament_families f ON f.id = b.filament_family_id
+    ORDER BY f.brand, f.material, f.brand_color_name, b.created_at
+  `).all<{
+    barcode: string
+    created_at: string
+    filament_family_id: string
+    brand: string
+    material: string
+    brand_color_name: string
+  }>()
+  return c.json({ mappings: rows.results })
+})
+
 barcode.get('/:barcode', async (c) => {
   const barcodeVal = c.req.param('barcode')
 
@@ -46,6 +64,39 @@ barcode.post('/register', async (c) => {
   }
 
   return c.json({ barcode: barcodeVal, filament_family_id, created_at: now }, 201)
+})
+
+barcode.patch('/:barcode', async (c) => {
+  const barcodeVal = c.req.param('barcode')
+  const { filament_family_id } = await c.req.json()
+
+  const existing = await c.env.DB.prepare(
+    'SELECT barcode FROM barcode_mappings WHERE barcode = ?'
+  ).bind(barcodeVal).first()
+  if (!existing) return c.json({ error: 'BARCODE_NOT_FOUND', message: 'Barcode not found' }, 404)
+
+  const family = await c.env.DB.prepare(
+    'SELECT id FROM filament_families WHERE id = ?'
+  ).bind(filament_family_id).first()
+  if (!family) return c.json({ error: 'FAMILY_NOT_FOUND', message: 'Filament family not found' }, 404)
+
+  await c.env.DB.prepare(
+    'UPDATE barcode_mappings SET filament_family_id = ? WHERE barcode = ?'
+  ).bind(filament_family_id, barcodeVal).run()
+
+  return c.json({ barcode: barcodeVal, filament_family_id })
+})
+
+barcode.delete('/:barcode', async (c) => {
+  const barcodeVal = c.req.param('barcode')
+
+  const existing = await c.env.DB.prepare(
+    'SELECT barcode FROM barcode_mappings WHERE barcode = ?'
+  ).bind(barcodeVal).first()
+  if (!existing) return c.json({ error: 'BARCODE_NOT_FOUND', message: 'Barcode not found' }, 404)
+
+  await c.env.DB.prepare('DELETE FROM barcode_mappings WHERE barcode = ?').bind(barcodeVal).run()
+  return c.json({ deleted: barcodeVal })
 })
 
 export default barcode

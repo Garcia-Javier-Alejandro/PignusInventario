@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { useDashboard } from '../../hooks/useDashboard'
+import BarcodeAdminModal from '../../components/BarcodeAdminModal'
 
 export default function Dashboard() {
   const { data, isLoading, isError } = useDashboard()
+  const [showBarcodes, setShowBarcodes] = useState(false)
 
   if (isLoading) return <div className="main-loading"><span className="spinner" /></div>
   if (isError) return <div className="main-error">Error al cargar el dashboard</div>
@@ -82,6 +85,20 @@ export default function Dashboard() {
           </div>
         </section>
       )}
+
+      <details className="debug-section">
+        <summary>Aux Debug Tools</summary>
+        <div className="debug-body">
+          <button type="button" className="btn btn--secondary" onClick={() => setShowBarcodes(true)}>
+            Códigos de barras
+          </button>
+          <button type="button" className="btn btn--secondary" disabled title="Próximamente">
+            Importar inventario inicial
+          </button>
+        </div>
+      </details>
+
+      {showBarcodes && <BarcodeAdminModal onClose={() => setShowBarcodes(false)} />}
     </div>
   )
 }
