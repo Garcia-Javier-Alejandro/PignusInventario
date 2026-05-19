@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import type { Env } from './types'
+import { getUserEmail } from './auth'
 
 const admin = new Hono<{ Bindings: Env }>()
 
@@ -28,16 +29,33 @@ admin.post('/wipe', async (c) => {
   return c.json({ wiped: true })
 })
 
-// Narrower reset: clear movement history and zero the projection, but keep
-// the filament catalog and the barcode mappings. Used to reset KPIs after
-// test interactions polluted them, without forcing a re-import.
+// Narrower reset: clear movement history but preserve the current stock.
+// For each family with stock > 0 we insert a single 'Importación inicial'
+// baseline movement equal to the prior stock — the dashboard's monthly
+// Ingresos KPI already filters that notes value out, so the baseline
+// doesn't pollute the KPI while keeping the projection self-consistent.
 admin.post('/wipe-movements', async (c) => {
+  const user = getUserEmail(c)
   const now = new Date().toISOString()
-  await c.env.DB.batch([
-    c.env.DB.prepare('DELETE FROM inventory_movements'),
-    c.env.DB.prepare('UPDATE inventory_projection SET current_quantity = 0, updated_at = ?').bind(now),
-  ])
-  return c.json({ wiped: true })
+
+  const stocks = await c.env.DB.prepare(
+    'SELECT filament_family_id, current_quantity FROM inventory_projection WHERE current_quantity > 0',
+  ).all<{ filament_family_id: string; current_quantity: number }>()
+
+  await c.env.DB.prepare('DELETE FROM inventory_movements').run()
+
+  if (stocks.results.length > 0) {
+    const baselines = stocks.results.map((s) =>
+      c.env.DB.prepare(`
+        INSERT INTO inventory_movements
+          (id, filament_family_id, movement_type, quantity_delta, notes, created_by, created_at)
+        VALUES (?, ?, 'RECEIVE_STOCK', ?, 'Importación inicial', ?, ?)
+      `).bind(crypto.randomUUID(), s.filament_family_id, s.current_quantity, user, now),
+    )
+    await c.env.DB.batch(baselines)
+  }
+
+  return c.json({ wiped: true, preserved_families: stocks.results.length })
 })
 
 export default admin

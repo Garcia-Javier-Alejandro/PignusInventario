@@ -39,7 +39,10 @@ export default function WipeMovementsModal({ onClose }: Props) {
 
         {done ? (
           <>
-            <p className="modal-stock">Movimientos borrados. Cada filamento quedó con stock 0.</p>
+            <p className="modal-stock">
+              Historial limpiado. El stock actual de cada filamento se conservó
+              mediante un movimiento <em>Importación inicial</em> equivalente.
+            </p>
             <div className="flow-actions">
               <button className="btn btn--primary btn--expand" onClick={onClose}>Cerrar</button>
             </div>
@@ -47,8 +50,9 @@ export default function WipeMovementsModal({ onClose }: Props) {
         ) : (
           <>
             <p className="modal-stock">
-              Esta acción elimina <strong>todos los movimientos</strong> y resetea el stock de cada
-              filamento a <strong>0</strong>. El catálogo de filamentos y los códigos de barras se conservan.
+              Borra <strong>todos los movimientos registrados</strong> pero <strong>conserva el stock actual</strong>:
+              por cada filamento con stock se crea un único movimiento <em>Importación inicial</em>
+              que repone el balance. El catálogo y los códigos de barras se conservan.
               No se puede deshacer.
             </p>
 
@@ -56,9 +60,9 @@ export default function WipeMovementsModal({ onClose }: Props) {
             {counts && (
               <ul className="delete-impact">
                 <li>Movimientos a borrar: <strong>{counts.movements}</strong></li>
-                <li>Filamentos afectados (stock → 0): <strong>{counts.projections}</strong></li>
                 <li>Filamentos conservados: <strong>{counts.families}</strong></li>
                 <li>Códigos de barras conservados: <strong>{counts.barcodes}</strong></li>
+                <li>Stock actual: <strong>conservado por filamento</strong></li>
               </ul>
             )}
 

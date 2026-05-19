@@ -87,10 +87,36 @@ importer.post('/', async (c) => {
 
     if (existing) {
       // Update editable fields (threshold + active) so a re-import fixes them.
-      // Do NOT touch stock, color name, or visual color.
+      // Do NOT touch stock, color name, or visual color in the common case.
       await c.env.DB.prepare(
         'UPDATE filament_families SET reorder_threshold = ?, active = ?, updated_at = ? WHERE id = ?'
       ).bind(threshold, active, now, existing.id).run()
+
+      // Re-stock branch: if the family currently has zero stock (e.g. after a
+      // 'Borrar movimientos' reset) and the CSV row brings stock, insert an
+      // 'Importación inicial' baseline movement and lift the projection. This
+      // lets a re-import recover the catalog from a wiped state without
+      // double-counting when stock is already non-zero.
+      if (qty > 0) {
+        const proj = await c.env.DB.prepare(
+          'SELECT current_quantity FROM inventory_projection WHERE filament_family_id = ?'
+        ).bind(existing.id).first<{ current_quantity: number }>()
+
+        if (!proj || proj.current_quantity === 0) {
+          const moveId = crypto.randomUUID()
+          await c.env.DB.batch([
+            c.env.DB.prepare(`
+              INSERT INTO inventory_movements
+                (id, filament_family_id, movement_type, quantity_delta, notes, created_by, created_at)
+              VALUES (?, ?, 'RECEIVE_STOCK', ?, 'Importación inicial', ?, ?)
+            `).bind(moveId, existing.id, qty, user, now),
+            c.env.DB.prepare(
+              'UPDATE inventory_projection SET current_quantity = ?, updated_at = ? WHERE filament_family_id = ?'
+            ).bind(qty, now, existing.id),
+          ])
+        }
+      }
+
       result.ok = true
       result.family_id = existing.id
       result.status = 'updated'
