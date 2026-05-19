@@ -194,7 +194,7 @@ function buildEmail({
     <tr>
       <td style="padding:0 32px 32px;">
         <a href="https://inventario.pignuslabs.com.ar"
-           style="display:inline-block;background:#1d4ed8;color:#ffffff;text-decoration:none;padding:10px 20px;border-radius:6px;font-size:13px;font-family:sans-serif;font-weight:600;">
+           style="display:inline-block;background:#1BBFA1;color:#ffffff;text-decoration:none;padding:10px 20px;border-radius:6px;font-size:13px;font-family:sans-serif;font-weight:600;">
           Abrir Inventario
         </a>
       </td>
@@ -204,7 +204,7 @@ function buildEmail({
     <tr>
       <td style="padding:16px 32px;background:#f5f0e8;border-top:1px solid #e8e2d9;">
         <p style="margin:0;font-size:11px;color:#9ca3af;font-family:sans-serif;">
-          Enviado automáticamente el 1° de cada mes · <a href="https://inventario.pignuslabs.com.ar" style="color:#1d4ed8;">inventario.pignuslabs.com.ar</a>
+          Enviado automáticamente el 1° de cada mes · <a href="https://inventario.pignuslabs.com.ar" style="color:#1BBFA1;">inventario.pignuslabs.com.ar</a>
         </p>
       </td>
     </tr>
