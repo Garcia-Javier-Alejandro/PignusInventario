@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import type { Env, FamilyRow } from './types'
 import { formatFamily } from './types'
 import { getFamilyWithStock } from './db'
+import { invalidateInventoryCache } from './cache'
 
 const families = new Hono<{ Bindings: Env }>()
 
@@ -97,6 +98,8 @@ families.post('/', async (c) => {
     throw e
   }
 
+  await invalidateInventoryCache(c.env)
+
   const family = await getFamilyWithStock(c.env.DB, id)
   return c.json(formatFamily(family!), 201)
 })
@@ -135,6 +138,8 @@ families.patch('/:id', async (c) => {
     throw e
   }
 
+  await invalidateInventoryCache(c.env)
+
   const family = await getFamilyWithStock(c.env.DB, id)
   return c.json(formatFamily(family!))
 })
@@ -161,6 +166,8 @@ families.delete('/:id', async (c) => {
     c.env.DB.prepare('DELETE FROM inventory_projection WHERE filament_family_id = ?').bind(id),
     c.env.DB.prepare('DELETE FROM filament_families WHERE id = ?').bind(id),
   ])
+
+  await invalidateInventoryCache(c.env)
 
   return c.json({ deleted: id })
 })

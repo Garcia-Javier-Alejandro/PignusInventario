@@ -3,6 +3,7 @@ import type { Env, MovementRow } from './types'
 import { formatMovement } from './types'
 import { recomputeProjection, getCurrentStock } from './db'
 import { getUserEmail } from './auth'
+import { invalidateInventoryCache } from './cache'
 
 const movements = new Hono<{ Bindings: Env }>()
 
@@ -34,6 +35,7 @@ movements.post('/receive', async (c) => {
   `).bind(id, family.id, quantity, notes, getUserEmail(c), now).run()
 
   await recomputeProjection(c.env.DB, family.id, now)
+  await invalidateInventoryCache(c.env)
 
   const movement = await c.env.DB.prepare(
     'SELECT * FROM inventory_movements WHERE id = ?'
@@ -76,6 +78,7 @@ movements.post('/consume', async (c) => {
   `).bind(id, family.id, -quantity, notes, getUserEmail(c), now).run()
 
   await recomputeProjection(c.env.DB, family.id, now)
+  await invalidateInventoryCache(c.env)
 
   const movement = await c.env.DB.prepare(
     'SELECT * FROM inventory_movements WHERE id = ?'
@@ -114,6 +117,7 @@ movements.post('/adjust', async (c) => {
   `).bind(id, filament_family_id, quantity_delta, notes, getUserEmail(c), now).run()
 
   await recomputeProjection(c.env.DB, filament_family_id, now)
+  await invalidateInventoryCache(c.env)
 
   const movement = await c.env.DB.prepare(
     'SELECT * FROM inventory_movements WHERE id = ?'
@@ -153,6 +157,7 @@ movements.patch('/:id', async (c) => {
   ).bind(...params).run()
 
   await recomputeProjection(c.env.DB, movement.filament_family_id, now)
+  await invalidateInventoryCache(c.env)
 
   const updated = await c.env.DB.prepare(
     'SELECT * FROM inventory_movements WHERE id = ?'

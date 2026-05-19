@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import type { Env } from './types'
 import { getUserEmail } from './auth'
+import { invalidateInventoryCache } from './cache'
 
 const VALID_COLORS = new Set([
   'BLACK', 'WHITE', 'GRAY', 'BEIGE', 'BROWN',
@@ -163,6 +164,10 @@ importer.post('/', async (c) => {
   const created = results.filter((r) => r.status === 'created').length
   const updated = results.filter((r) => r.status === 'updated').length
   const errors = results.filter((r) => !r.ok).length
+
+  if (created + updated > 0) {
+    await invalidateInventoryCache(c.env)
+  }
 
   return c.json({ created, updated, errors, results })
 })

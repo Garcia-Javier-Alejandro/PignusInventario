@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import type { Env } from './types'
 import { getUserEmail } from './auth'
+import { invalidateInventoryCache } from './cache'
 
 const admin = new Hono<{ Bindings: Env }>()
 
@@ -26,6 +27,7 @@ admin.post('/wipe', async (c) => {
     c.env.DB.prepare('DELETE FROM inventory_projection'),
     c.env.DB.prepare('DELETE FROM filament_families'),
   ])
+  await invalidateInventoryCache(c.env)
   return c.json({ wiped: true })
 })
 
@@ -55,7 +57,16 @@ admin.post('/wipe-movements', async (c) => {
     await c.env.DB.batch(baselines)
   }
 
+  await invalidateInventoryCache(c.env)
+
   return c.json({ wiped: true, preserved_families: stocks.results.length })
+})
+
+// Force-clear the inventory KV cache. Used when a debug user wants the
+// next dashboard fetch to come from D1 without waiting for the TTL.
+admin.post('/cache-clear', async (c) => {
+  await invalidateInventoryCache(c.env)
+  return c.json({ cleared: true })
 })
 
 export default admin

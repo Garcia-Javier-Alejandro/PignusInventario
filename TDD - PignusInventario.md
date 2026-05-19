@@ -788,10 +788,10 @@ Invalidate affected keys on every movement write.
   movements stay readable, but no UI surfaces it)
 
 ### Phase 3 — Operations & Notifications
-- Movement edit flow
-- Admin tools (barcode remapping, family deactivation, inventory correction)
+- Movement edit flow ✓
+- Admin tools (barcode remapping, family deactivation, inventory correction) ✓
 - Resend email integration + cron Worker (requires adding a separate `worker/` workspace — see §13)
-- KV caching layer
+- KV caching layer ✓ — dashboard cached with 5-minute TTL, `low_stock:list` key reserved for future use; invalidated on every write that affects stock, low-stock state, or active filament counts; `Limpiar caché KV` debug button forces immediate clear
 
 ### Phase 4 — Forecasting Foundation
 - Historical aggregation endpoints

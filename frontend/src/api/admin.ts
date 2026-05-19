@@ -18,3 +18,7 @@ export function wipeAllInventory(): Promise<{ wiped: true }> {
 export function wipeAllMovements(): Promise<{ wiped: true }> {
   return api.post('/api/inventory/admin/wipe-movements', {})
 }
+
+export function clearInventoryCache(): Promise<{ cleared: true }> {
+  return api.post('/api/inventory/admin/cache-clear', {})
+}

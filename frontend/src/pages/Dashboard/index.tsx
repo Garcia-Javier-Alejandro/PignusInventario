@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDashboard } from '../../hooks/useDashboard'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import ImportModal from '../../components/ImportModal'
 import WipeAllModal from '../../components/WipeAllModal'
 import WipeMovementsModal from '../../components/WipeMovementsModal'
+import { clearInventoryCache } from '../../api/admin'
 import ColorDot from '../../components/ColorDot'
 import { formatBuildLabel, forceAppUpdate } from '../../lib/buildInfo'
 import type { InventoryMovement } from '../../types'
@@ -20,6 +22,11 @@ export default function Dashboard() {
   const [showImport, setShowImport] = useState(false)
   const [showWipe, setShowWipe] = useState(false)
   const [showWipeMovements, setShowWipeMovements] = useState(false)
+  const qc = useQueryClient()
+  const clearCache = useMutation({
+    mutationFn: clearInventoryCache,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['dashboard'] }),
+  })
 
   if (isLoading) return <div className="main-loading"><span className="spinner" /></div>
 
@@ -104,6 +111,15 @@ export default function Dashboard() {
             style={{ width: '100%' }}
           >
             Forzar actualización
+          </button>
+          <button
+            type="button"
+            className="btn btn--secondary"
+            onClick={() => clearCache.mutate()}
+            disabled={clearCache.isPending}
+            style={{ width: '100%' }}
+          >
+            {clearCache.isPending ? <span className="spinner" /> : 'Limpiar caché KV'}
           </button>
           <button
             type="button"
