@@ -1352,6 +1352,91 @@
 .movement-row__delta.is-pos { color: var(--ok); }
 .movement-row__delta.is-neg { color: var(--err); }
 
+/* Pending-changes state on inline editors */
+.detail-stock-card__value--pending,
+.umbral-stepper--pending .umbral-stepper__value,
+.active-toggle--pending {
+  color: var(--pending-fg, #92400e);
+}
+
+.umbral-stepper--pending {
+  border-color: var(--pending-bdr, #fde68a) !important;
+  background: var(--pending-bg, #fef9c3) !important;
+}
+
+.active-toggle--pending {
+  outline: 2px solid var(--pending-bdr, #fde68a);
+  outline-offset: 2px;
+}
+
+.detail-pending-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--pending-bg, #fef9c3);
+  color: var(--pending-fg, #92400e);
+  border: 1px solid var(--pending-bdr, #fde68a);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.detail-pending-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pending-fg, #92400e);
+  margin-left: 4px;
+}
+
+/* Sticky 'unsaved changes' bar — fixed above the BottomNav. */
+.pending-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  z-index: 90;
+  background: var(--card);
+  border: 1px solid var(--pending-bdr, #fde68a);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-3) var(--space-3);
+  box-shadow: 0 12px 28px rgba(28, 24, 19, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pending-bar__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pending-bar__title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pending-fg, #92400e);
+}
+
+.pending-bar__summary {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.pending-bar__error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--err);
+}
+
+.pending-bar__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
 /* Eliminar filamento — full-width, red outline, at the bottom of the detail. */
 .btn-eliminar {
   width: 100%;

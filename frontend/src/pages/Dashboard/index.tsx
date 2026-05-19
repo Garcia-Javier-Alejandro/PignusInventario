@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useDashboard } from '../../hooks/useDashboard'
 import ImportModal from '../../components/ImportModal'
 import WipeAllModal from '../../components/WipeAllModal'
+import WipeMovementsModal from '../../components/WipeMovementsModal'
 import ColorDot from '../../components/ColorDot'
 import { formatBuildLabel, forceAppUpdate } from '../../lib/buildInfo'
 import type { InventoryMovement } from '../../types'
@@ -18,6 +19,7 @@ export default function Dashboard() {
   const { data, isLoading, isError } = useDashboard()
   const [showImport, setShowImport] = useState(false)
   const [showWipe, setShowWipe] = useState(false)
+  const [showWipeMovements, setShowWipeMovements] = useState(false)
 
   if (isLoading) return <div className="main-loading"><span className="spinner" /></div>
 
@@ -106,6 +108,14 @@ export default function Dashboard() {
           <button
             type="button"
             className="btn btn--danger"
+            onClick={() => setShowWipeMovements(true)}
+            style={{ width: '100%' }}
+          >
+            Borrar movimientos
+          </button>
+          <button
+            type="button"
+            className="btn btn--danger"
             onClick={() => setShowWipe(true)}
             style={{ width: '100%' }}
           >
@@ -116,6 +126,7 @@ export default function Dashboard() {
 
       {showImport && <ImportModal onClose={() => setShowImport(false)} />}
       {showWipe && <WipeAllModal onClose={() => setShowWipe(false)} />}
+      {showWipeMovements && <WipeMovementsModal onClose={() => setShowWipeMovements(false)} />}
     </div>
   )
 }

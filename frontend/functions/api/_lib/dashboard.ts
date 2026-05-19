@@ -46,7 +46,9 @@ dashboard.get('/', async (c) => {
     c.env.DB.prepare(`
       SELECT COALESCE(SUM(quantity_delta), 0) as total
       FROM inventory_movements
-      WHERE movement_type = 'RECEIVE_STOCK' AND created_at >= ?
+      WHERE movement_type = 'RECEIVE_STOCK'
+        AND created_at >= ?
+        AND (notes IS NULL OR notes != 'Importación inicial')
     `).bind(startOfMonth),
   ])
 

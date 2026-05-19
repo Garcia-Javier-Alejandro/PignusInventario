@@ -14,3 +14,7 @@ export function fetchInventoryCounts(): Promise<InventoryCounts> {
 export function wipeAllInventory(): Promise<{ wiped: true }> {
   return api.post('/api/inventory/admin/wipe', {})
 }
+
+export function wipeAllMovements(): Promise<{ wiped: true }> {
+  return api.post('/api/inventory/admin/wipe-movements', {})
+}

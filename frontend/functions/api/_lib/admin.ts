@@ -28,4 +28,16 @@ admin.post('/wipe', async (c) => {
   return c.json({ wiped: true })
 })
 
+// Narrower reset: clear movement history and zero the projection, but keep
+// the filament catalog and the barcode mappings. Used to reset KPIs after
+// test interactions polluted them, without forcing a re-import.
+admin.post('/wipe-movements', async (c) => {
+  const now = new Date().toISOString()
+  await c.env.DB.batch([
+    c.env.DB.prepare('DELETE FROM inventory_movements'),
+    c.env.DB.prepare('UPDATE inventory_projection SET current_quantity = 0, updated_at = ?').bind(now),
+  ])
+  return c.json({ wiped: true })
+})
+
 export default admin
