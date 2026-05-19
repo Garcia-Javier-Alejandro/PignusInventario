@@ -75,6 +75,40 @@ Build settings (configured in the CF Pages dashboard):
 
 The build also ships `frontend/public/_routes.json`, which explicitly tells Pages to route `/api/*` to the Function and let everything else fall through to the React SPA shell.
 
+## Aux Debug Tools
+
+The Dashboard has a collapsible **Aux Debug Tools** section at the bottom
+(inside `<details>`). It surfaces operator/admin actions that don't belong
+in the regular UI:
+
+| Button | What it does |
+|---|---|
+| `Importar inventario inicial` | Paste 7-col CSV (`Marca · Material · Color · Color visual · Cantidad · Umbral · Activo`) to bulk-seed the catalog. Idempotent: re-importing updates threshold/active and restocks zero-stock duplicates via a baseline movement. |
+| `Forzar actualización` | Unregister the service worker, clear caches, reload. Recovery path for a stuck PWA install. |
+| `Limpiar caché KV` | Force-clear the dashboard cache without waiting for TTL. |
+| `Borrar movimientos` | Wipe `inventory_movements` while preserving each family's current stock via a single `Importación inicial` baseline movement. Catalog and barcodes are kept. Type-to-confirm `BORRAR`. |
+| `Borrar todo el inventario` | Full nuke: movements, barcodes, projections, families. Type-to-confirm `BORRAR`. |
+
+A `Build <sha · timestamp>` line is rendered just above the Aux Debug Tools
+section, outside any styled container, so the running build hash stays
+readable even if a nested layout breaks.
+
+## Caching
+
+`functions/api/_lib/cache.ts` ships a small KV read-through helper used by
+the dashboard endpoint. Two keys defined:
+
+| Key | TTL |
+|---|---|
+| `dashboard:summary` | 5 minutes |
+| `low_stock:list` | 2 minutes (reserved, not wired yet) |
+
+`invalidateInventoryCache(env)` is awaited at the end of every write that
+affects stock, low-stock state, or active filament counts — receive,
+consume, adjust, movement-patch, family-post/patch/delete, import (when
+something was actually created/updated), admin-wipe, admin-wipe-movements.
+The `Limpiar caché KV` debug button forces an immediate clear when needed.
+
 ## Debugging the live API
 
 Stream Function logs in real time:
