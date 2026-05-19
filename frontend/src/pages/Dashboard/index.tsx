@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDashboard } from '../../hooks/useDashboard'
+import { useFamilies } from '../../hooks/useFamilies'
+import { useTotalStockHistory, useFamilyStockHistory } from '../../hooks/useHistory'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import ImportModal from '../../components/ImportModal'
 import WipeAllModal from '../../components/WipeAllModal'
 import WipeMovementsModal from '../../components/WipeMovementsModal'
+import MiniLineChart from '../../components/MiniLineChart'
 import { clearInventoryCache } from '../../api/admin'
 import ColorDot from '../../components/ColorDot'
 import { formatBuildLabel, forceAppUpdate } from '../../lib/buildInfo'
@@ -44,10 +47,13 @@ export default function Dashboard() {
       />
 
       <div className="mini-kpi-row">
-        <MiniKpi label="Stock total" value={data?.total_stock} unit="kg" />
         <MiniKpi label="Consumo / mes" value={data?.consumed_this_month} unit="kg" />
         <MiniKpi label="Ingresos / mes" value={data?.received_this_month} unit="kg" />
       </div>
+
+      <TotalStockChartCard totalStock={data?.total_stock} />
+
+      <StockPerFamilyChartCard />
 
       <section className="dashboard-section">
         <div className="dashboard-section__head">
@@ -175,6 +181,94 @@ function MiniKpi({ label, value, unit }: { label: string; value?: number; unit?:
         <span className="kpi-card__value mini-kpi__value">{value ?? '—'}</span>
         {unit && <span className="mini-kpi__unit">{unit}</span>}
       </div>
+    </div>
+  )
+}
+
+function ChartPlaceholder({ label = 'Próximamente' }: { label?: string }) {
+  return (
+    <div className="chart-placeholder">
+      <svg
+        className="chart-placeholder__svg"
+        viewBox="0 0 320 100"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <g stroke="var(--border)" strokeWidth="0.5" opacity="0.7">
+          <line x1="0" y1="25" x2="320" y2="25" />
+          <line x1="0" y1="50" x2="320" y2="50" />
+          <line x1="0" y1="75" x2="320" y2="75" />
+        </g>
+      </svg>
+      <span className="chart-placeholder__overlay">{label}</span>
+    </div>
+  )
+}
+
+function TotalStockChartCard({ totalStock }: { totalStock?: number }) {
+  const { data, isLoading, isError } = useTotalStockHistory(30)
+  const points = useMemo(
+    () => (data?.series ?? []).map((p) => ({ date: p.date, value: p.total_stock })),
+    [data],
+  )
+
+  return (
+    <div className="chart-card">
+      <div className="chart-card__head">
+        <div className="kpi-card__eyebrow">Stock total — evolución</div>
+        <div className="chart-card__corner">
+          <span className="chart-card__corner-value">{totalStock ?? '—'} kg</span>
+          <span className="chart-card__corner-label">Stock total</span>
+        </div>
+      </div>
+      {isLoading ? (
+        <ChartPlaceholder label="Cargando…" />
+      ) : isError ? (
+        <ChartPlaceholder label="Sin datos" />
+      ) : (
+        <MiniLineChart points={points} ariaLabel="Stock total en los últimos 30 días" />
+      )}
+    </div>
+  )
+}
+
+function StockPerFamilyChartCard() {
+  const { data: families } = useFamilies()
+  const options = useMemo(() => families ?? [], [families])
+  const [selected, setSelected] = useState<string>('')
+  const { data, isLoading, isError } = useFamilyStockHistory(selected, 30)
+  const points = useMemo(
+    () => (data?.series ?? []).map((p) => ({ date: p.date, value: p.stock })),
+    [data],
+  )
+
+  return (
+    <div className="chart-card">
+      <div className="chart-card__head">
+        <div className="kpi-card__eyebrow">Stock por filamento</div>
+        <select
+          className="chart-card__corner-select"
+          value={selected}
+          onChange={(e) => setSelected(e.target.value)}
+          aria-label="Seleccionar filamento"
+        >
+          <option value="">Seleccionar filamento…</option>
+          {options.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.brand} {f.material} {f.brand_color_name}
+            </option>
+          ))}
+        </select>
+      </div>
+      {!selected ? (
+        <ChartPlaceholder label="Elegí un filamento" />
+      ) : isLoading ? (
+        <ChartPlaceholder label="Cargando…" />
+      ) : isError ? (
+        <ChartPlaceholder label="Sin datos" />
+      ) : (
+        <MiniLineChart points={points} ariaLabel="Stock del filamento en los últimos 30 días" />
+      )}
     </div>
   )
 }

@@ -5,13 +5,12 @@
   flex-direction: column;
 }
 
-/* Use Newsreader for headlines (page title, KPI numbers, detail title) per the
-   design bundle. PignusUI's serif token still points at Quicksand for other
-   contexts so we override locally rather than retargeting the global token. */
+/* Use Newsreader for headlines (page title, detail title) per the design
+   bundle. PignusUI's serif token still points at Quicksand for other contexts
+   so we override locally rather than retargeting the global token. KPI values
+   intentionally fall back to PignusUI's default serif. */
 .header__wordmark,
-.detail-title,
-.kpi-card__value,
-.kpi-hero__value {
+.detail-title {
   font-family: 'Newsreader', 'Quicksand', Georgia, serif;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -959,9 +958,14 @@
   padding: 14px 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-height: 96px;
+  gap: 6px;
   min-width: 0;
+}
+
+.mini-kpi .kpi-card__eyebrow {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mini-kpi__value-row {
@@ -980,6 +984,86 @@
   font-size: 11px;
   font-weight: 600;
   color: var(--ink-3);
+}
+
+/* Placeholder chart cards on the Dashboard. The header has the eyebrow on the
+   left and a corner slot (KPI or dropdown) on the right; the chart area is a
+   faded line SVG with a "Próximamente" overlay until the real series ship. */
+.chart-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.chart-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.chart-card__corner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 0;
+}
+
+.chart-card__corner-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.chart-card__corner-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+
+.chart-card__corner-select {
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 6px;
+  max-width: 60vw;
+}
+
+.chart-placeholder {
+  position: relative;
+  height: 140px;
+  border-top: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.chart-placeholder__svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.chart-placeholder__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-3);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  pointer-events: none;
 }
 
 .dashboard-section__head {

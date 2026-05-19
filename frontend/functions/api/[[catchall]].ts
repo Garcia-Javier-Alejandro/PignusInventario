@@ -6,6 +6,7 @@ import families from './_lib/families'
 import barcode from './_lib/barcode'
 import movements from './_lib/movements'
 import dashboard from './_lib/dashboard'
+import history from './_lib/history'
 import importer from './_lib/import'
 import admin from './_lib/admin'
 
@@ -17,6 +18,7 @@ app.route('/api/inventory/families', families)
 app.route('/api/inventory/barcode', barcode)
 app.route('/api/inventory/movements', movements)
 app.route('/api/inventory/dashboard', dashboard)
+app.route('/api/inventory/history', history)
 app.route('/api/inventory/import', importer)
 app.route('/api/inventory/admin', admin)
 
