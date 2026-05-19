@@ -21,6 +21,21 @@ export interface FamilyStockHistoryResponse {
   series: FamilyStockPoint[]
 }
 
+export interface MonthlyPoint {
+  month: string
+  consumed: number
+  received: number
+}
+
+export interface MonthlyHistoryResponse {
+  months: number
+  series: MonthlyPoint[]
+}
+
+export function fetchMonthlyHistory(months = 6): Promise<MonthlyHistoryResponse> {
+  return api.get(`/api/inventory/history/monthly?months=${months}`)
+}
+
 export function fetchTotalStockHistory(days = 30): Promise<TotalStockHistoryResponse> {
   return api.get(`/api/inventory/history/total-stock?days=${days}`)
 }

@@ -339,7 +339,6 @@ Required: brand, material, supplier color name, normalized visual color, reorder
 - Low stock visibility
 - Movement history
 - Consumption trends
-- Most-used filament families
 
 ### Deferred
 - Costing, procurement optimization, production metrics, inventory valuation, ERP reconciliation

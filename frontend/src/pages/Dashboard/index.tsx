@@ -2,12 +2,13 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDashboard } from '../../hooks/useDashboard'
 import { useFamilies } from '../../hooks/useFamilies'
-import { useTotalStockHistory, useFamilyStockHistory } from '../../hooks/useHistory'
+import { useTotalStockHistory, useFamilyStockHistory, useMonthlyHistory } from '../../hooks/useHistory'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import ImportModal from '../../components/ImportModal'
 import WipeAllModal from '../../components/WipeAllModal'
 import WipeMovementsModal from '../../components/WipeMovementsModal'
 import MiniLineChart from '../../components/MiniLineChart'
+import MonthlyBarChart from '../../components/MonthlyBarChart'
 import { clearInventoryCache } from '../../api/admin'
 import ColorDot from '../../components/ColorDot'
 import { formatBuildLabel, forceAppUpdate } from '../../lib/buildInfo'
@@ -50,6 +51,8 @@ export default function Dashboard() {
         <MiniKpi label="Consumo / mes" value={data?.consumed_this_month} unit="kg" />
         <MiniKpi label="Ingresos / mes" value={data?.received_this_month} unit="kg" />
       </div>
+
+      <MonthlyTrendsCard />
 
       <TotalStockChartCard totalStock={data?.total_stock} />
 
@@ -205,8 +208,48 @@ function ChartPlaceholder({ label = 'Próximamente' }: { label?: string }) {
   )
 }
 
+const DAY_RANGES = [30, 90, 365] as const
+type DayRange = typeof DAY_RANGES[number]
+
+function RangePicker({ value, onChange }: { value: DayRange; onChange: (v: DayRange) => void }) {
+  return (
+    <div className="chart-range-picker">
+      {DAY_RANGES.map((d) => (
+        <button
+          key={d}
+          type="button"
+          className={`chart-range-picker__btn${value === d ? ' is-active' : ''}`}
+          onClick={() => onChange(d)}
+        >
+          {d}d
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function MonthlyTrendsCard() {
+  const { data, isLoading, isError } = useMonthlyHistory(6)
+
+  return (
+    <div className="chart-card">
+      <div className="chart-card__head">
+        <div className="kpi-card__eyebrow">Tendencia mensual</div>
+      </div>
+      {isLoading ? (
+        <ChartPlaceholder label="Cargando…" />
+      ) : isError ? (
+        <ChartPlaceholder label="Sin datos" />
+      ) : (
+        <MonthlyBarChart series={data?.series ?? []} />
+      )}
+    </div>
+  )
+}
+
 function TotalStockChartCard({ totalStock }: { totalStock?: number }) {
-  const { data, isLoading, isError } = useTotalStockHistory(30)
+  const [days, setDays] = useState<DayRange>(30)
+  const { data, isLoading, isError } = useTotalStockHistory(days)
   const points = useMemo(
     () => (data?.series ?? []).map((p) => ({ date: p.date, value: p.total_stock })),
     [data],
@@ -215,18 +258,19 @@ function TotalStockChartCard({ totalStock }: { totalStock?: number }) {
   return (
     <div className="chart-card">
       <div className="chart-card__head">
-        <div className="kpi-card__eyebrow">Stock total — evolución</div>
+        <div className="kpi-card__eyebrow">Stock total</div>
         <div className="chart-card__corner">
           <span className="chart-card__corner-value">{totalStock ?? '—'} kg</span>
-          <span className="chart-card__corner-label">Stock total</span>
+          <span className="chart-card__corner-label">Stock actual</span>
         </div>
       </div>
+      <RangePicker value={days} onChange={setDays} />
       {isLoading ? (
         <ChartPlaceholder label="Cargando…" />
       ) : isError ? (
         <ChartPlaceholder label="Sin datos" />
       ) : (
-        <MiniLineChart points={points} ariaLabel="Stock total en los últimos 30 días" />
+        <MiniLineChart points={points} ariaLabel={`Stock total en los últimos ${days} días`} />
       )}
     </div>
   )
@@ -234,9 +278,18 @@ function TotalStockChartCard({ totalStock }: { totalStock?: number }) {
 
 function StockPerFamilyChartCard() {
   const { data: families } = useFamilies()
-  const options = useMemo(() => families ?? [], [families])
+  const options = useMemo(
+    () =>
+      (families ?? []).slice().sort((a, b) =>
+        a.brand.localeCompare(b.brand, 'es') ||
+        a.material.localeCompare(b.material, 'es') ||
+        a.brand_color_name.localeCompare(b.brand_color_name, 'es'),
+      ),
+    [families],
+  )
   const [selected, setSelected] = useState<string>('')
-  const { data, isLoading, isError } = useFamilyStockHistory(selected, 30)
+  const [days, setDays] = useState<DayRange>(30)
+  const { data, isLoading, isError } = useFamilyStockHistory(selected, days)
   const points = useMemo(
     () => (data?.series ?? []).map((p) => ({ date: p.date, value: p.stock })),
     [data],
@@ -252,7 +305,7 @@ function StockPerFamilyChartCard() {
           onChange={(e) => setSelected(e.target.value)}
           aria-label="Seleccionar filamento"
         >
-          <option value="">Seleccionar filamento…</option>
+          <option value="" disabled>Seleccionar filamento…</option>
           {options.map((f) => (
             <option key={f.id} value={f.id}>
               {f.brand} {f.material} {f.brand_color_name}
@@ -260,6 +313,7 @@ function StockPerFamilyChartCard() {
           ))}
         </select>
       </div>
+      <RangePicker value={days} onChange={setDays} />
       {!selected ? (
         <ChartPlaceholder label="Elegí un filamento" />
       ) : isLoading ? (
@@ -267,7 +321,7 @@ function StockPerFamilyChartCard() {
       ) : isError ? (
         <ChartPlaceholder label="Sin datos" />
       ) : (
-        <MiniLineChart points={points} ariaLabel="Stock del filamento en los últimos 30 días" />
+        <MiniLineChart points={points} ariaLabel={`Stock de filamento en los últimos ${days} días`} />
       )}
     </div>
   )

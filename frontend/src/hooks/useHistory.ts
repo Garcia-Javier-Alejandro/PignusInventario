@@ -1,5 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchTotalStockHistory, fetchFamilyStockHistory } from '../api/history'
+import { fetchTotalStockHistory, fetchFamilyStockHistory, fetchMonthlyHistory } from '../api/history'
+
+export function useMonthlyHistory(months = 6) {
+  return useQuery({
+    queryKey: ['history', 'monthly', months],
+    queryFn: () => fetchMonthlyHistory(months),
+  })
+}
 
 export function useTotalStockHistory(days = 30) {
   return useQuery({

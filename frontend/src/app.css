@@ -1066,6 +1066,206 @@
   pointer-events: none;
 }
 
+/* MiniLineChart with Y/X axes. Two-column / two-row CSS grid so the Y labels
+   align vertically with the plot's top/middle/bottom gridlines, and the X
+   labels sit in their own row beneath the plot column. */
+.chart-area {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  grid-template-rows: 1fr 18px;
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+  min-width: 0;
+}
+
+.chart-area__y {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 2px 6px 2px 0;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-area__plot {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  min-width: 0;
+}
+
+.chart-area__plot svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.chart-area__x {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  justify-content: space-between;
+  padding-top: 4px;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Range picker — row of small pill buttons shown between the card head and
+   the chart area so the user can switch between 30 / 90 / 365 day windows. */
+.chart-range-picker {
+  display: flex;
+  gap: 4px;
+}
+
+.chart-range-picker__btn {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  line-height: 1.4;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+
+.chart-range-picker__btn.is-active {
+  background: var(--ink);
+  color: var(--cream, #f5f0e8);
+  border-color: var(--ink);
+}
+
+/* Monthly consumed-vs-received bar chart */
+.monthly-chart {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.monthly-chart__legend {
+  display: flex;
+  gap: 12px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+
+.monthly-chart__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.monthly-chart__legend-item::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.monthly-chart__legend-item--received::before {
+  background: var(--blue);
+  opacity: 0.75;
+}
+
+.monthly-chart__legend-item--consumed::before {
+  background: #f59e0b;
+  opacity: 0.85;
+}
+
+.monthly-chart__area {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 0;
+  height: 120px;
+  min-width: 0;
+}
+
+.monthly-chart__y {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-right: 6px;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.monthly-chart__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 100%;
+  padding-bottom: 18px; /* room for month labels */
+  position: relative;
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding-left: 4px;
+}
+
+.monthly-chart__group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  min-width: 0;
+}
+
+.monthly-chart__pair {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 0;
+}
+
+.monthly-chart__bar {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+  max-width: 14px;
+  transition: height 0.25s ease;
+}
+
+.monthly-chart__bar--received {
+  background: var(--blue);
+  opacity: 0.75;
+}
+
+.monthly-chart__bar--consumed {
+  background: #f59e0b;
+  opacity: 0.85;
+}
+
+.monthly-chart__label {
+  font-size: 9px;
+  color: var(--ink-3);
+  text-align: center;
+  margin-top: 4px;
+  text-transform: capitalize;
+  line-height: 1;
+}
+
 .dashboard-section__head {
   display: flex;
   align-items: center;
