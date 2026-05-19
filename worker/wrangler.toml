@@ -14,4 +14,4 @@ database_id = "a54a3364-529c-48c7-ad4e-f9c5afc5c04e"
 # Recipients are a plain env var — update here and redeploy to change the list.
 # RESEND_API_KEY is a secret: wrangler secret put RESEND_API_KEY
 [vars]
-RECIPIENT_EMAILS = "garcia.javier.alejandro@gmail.com,pignusmascaras@gmail.com"
+RECIPIENT_EMAILS = "garcia.javier.alejandro@gmail.com,graspatuzza@gmail.com,fiorespatuzza@gmail.com"
