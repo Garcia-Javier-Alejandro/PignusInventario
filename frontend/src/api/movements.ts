@@ -16,10 +16,6 @@ export function consumeStock(barcode: string, quantity: number, notes?: string):
   return api.post(`${BASE}/consume`, { barcode, quantity, notes: notes ?? null })
 }
 
-export function adjustStock(filament_family_id: string, quantity_delta: number, notes: string): Promise<MovementResult> {
-  return api.post(`${BASE}/adjust`, { filament_family_id, quantity_delta, notes })
-}
-
 export function patchMovement(id: string, body: { quantity_delta?: number; notes?: string | null }): Promise<InventoryMovement> {
   return api.patch(`${BASE}/${id}`, body)
 }

@@ -776,13 +776,16 @@ Invalidate affected keys on every movement write.
 - Receive flow end-to-end ✓
 - Consume flow end-to-end ✓
 
-### Phase 2 — Discovery & Dashboard (current)
-- `GET /families` with search, filter, sort
-- Family list with inline editing
-- Low stock logic + alternatives query
-- Dashboard endpoint + page
-- Movement history page
-- Manual adjustment flow
+### Phase 2 — Discovery & Dashboard ✓ DONE
+- `GET /families` with search, filter, sort ✓
+- Family list with inline editing ✓
+- Low stock logic + alternatives query ✓
+- Dashboard endpoint + page ✓
+- Movement history page ✓
+- ~~Manual adjustment flow~~ — dropped from MVP per product decision (frontend
+  modal removed; the `/api/inventory/movements/adjust` endpoint and
+  `MANUAL_ADJUSTMENT` movement type remain in the backend so historical
+  movements stay readable, but no UI surfaces it)
 
 ### Phase 3 — Operations & Notifications
 - Movement edit flow

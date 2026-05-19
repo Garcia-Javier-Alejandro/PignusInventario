@@ -6,7 +6,6 @@ import { useMovements, useReceive, useConsume } from '../../hooks/useMovements'
 import { listBarcodes } from '../../api/barcode'
 import FamilyDeleteModal from '../../components/FamilyDeleteModal'
 import FamilyEditModal from '../../components/FamilyEditModal'
-import ManualAdjustModal from '../../components/ManualAdjustModal'
 import AlternativesList from '../../components/AlternativesList'
 import { DeleteIcon, EditIcon } from '../../components/icons'
 import { VISUAL_COLORS } from '../../lib/visualColors'
@@ -23,7 +22,6 @@ export default function FamilyDetail() {
   const navigate = useNavigate()
   const [showDelete, setShowDelete] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
-  const [showAdjust, setShowAdjust] = useState(false)
 
   // Staged edits — nothing commits until the user taps Guardar.
   const [pendingDelta, setPendingDelta] = useState(0)
@@ -224,23 +222,13 @@ export default function FamilyDetail() {
         </button>
         <button
           type="button"
-          className="btn btn--ghost"
-          onClick={() => setShowAdjust(true)}
-          disabled={saving || dirty}
-          title={dirty ? 'Guardá los cambios pendientes antes de hacer un ajuste' : 'Ajuste manual con motivo'}
+          className="btn-eliminar btn-eliminar--inline icon-btn-row"
+          onClick={() => setShowDelete(true)}
+          disabled={saving}
         >
-          Ajuste manual
+          <DeleteIcon /> Eliminar
         </button>
       </div>
-
-      <button
-        type="button"
-        className="btn-eliminar"
-        onClick={() => setShowDelete(true)}
-        disabled={saving}
-      >
-        <DeleteIcon /> Eliminar filamento
-      </button>
 
       {dirty && (
         <PendingChangesBar
@@ -267,13 +255,6 @@ export default function FamilyDetail() {
         <FamilyEditModal
           family={family}
           onClose={() => setShowEdit(false)}
-        />
-      )}
-
-      {showAdjust && (
-        <ManualAdjustModal
-          family={family}
-          onClose={() => setShowAdjust(false)}
         />
       )}
     </div>

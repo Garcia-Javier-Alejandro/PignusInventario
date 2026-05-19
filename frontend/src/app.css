@@ -1437,16 +1437,23 @@
   gap: var(--space-2);
 }
 
-/* Editar / Ajuste secondary action row — sits just above the destructive
-   Eliminar button at the bottom of FamilyDetail. */
+/* Editar / Eliminar secondary action row at the bottom of FamilyDetail. */
 .detail-secondary-actions {
   display: flex;
   gap: var(--space-2);
 }
 
-.detail-secondary-actions .btn {
+.detail-secondary-actions .btn,
+.detail-secondary-actions .btn-eliminar {
   flex: 1;
   justify-content: center;
+}
+
+/* Inline variant of Eliminar — sits side-by-side with Editar instead of
+   taking a full-width row. Keeps the red outline destructive styling. */
+.btn-eliminar--inline {
+  width: auto;
+  padding: 11px var(--space-3);
 }
 
 /* Eliminar filamento — full-width, red outline, at the bottom of the detail. */
