@@ -999,6 +999,7 @@
   flex-direction: column;
   gap: 10px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .chart-card__head {
@@ -1097,6 +1098,7 @@
   grid-row: 1;
   position: relative;
   min-width: 0;
+  overflow: hidden;
 }
 
 .chart-area__plot svg {

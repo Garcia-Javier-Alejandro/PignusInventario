@@ -120,8 +120,7 @@ no app-side configuration needed.
 - Inventario card list with sort and low-stock filter.
 - Family detail with staged edits.
 - Dashboard with low-stock alerts, monthly KPIs, stock-over-time line charts
-  (total and per filament, with 30/90/365 d range picker), and a 6-month
-  consumed-vs-received bar chart.
+  (total and per filament, with 30/90/365 d range picker).
 - Movement history page.
 - Bulk CSV import for initial inventory seeding.
 - KV caching on the dashboard endpoint.
@@ -313,6 +312,12 @@ screen is being touched anyway.
   library (`@headlessui/react` `Listbox`, +10–20 KB gz) and render a
   `<ColorDot>` next to each row label. Upgrade to `Combobox` with a text
   filter once the catalog grows past ~30 families.
+
+- **Monthly consumed-vs-received bar chart.** Built (see `MonthlyBarChart`
+  component and `/api/inventory/history/monthly` endpoint) but removed from
+  the Dashboard — the value wasn't clear at current catalog size. May be
+  worth reinstating once there's enough historical data to make the trend
+  readable.
 
 ## Docs
 

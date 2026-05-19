@@ -2,13 +2,12 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDashboard } from '../../hooks/useDashboard'
 import { useFamilies } from '../../hooks/useFamilies'
-import { useTotalStockHistory, useFamilyStockHistory, useMonthlyHistory } from '../../hooks/useHistory'
+import { useTotalStockHistory, useFamilyStockHistory } from '../../hooks/useHistory'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import ImportModal from '../../components/ImportModal'
 import WipeAllModal from '../../components/WipeAllModal'
 import WipeMovementsModal from '../../components/WipeMovementsModal'
 import MiniLineChart from '../../components/MiniLineChart'
-import MonthlyBarChart from '../../components/MonthlyBarChart'
 import { clearInventoryCache } from '../../api/admin'
 import ColorDot from '../../components/ColorDot'
 import { formatBuildLabel, forceAppUpdate } from '../../lib/buildInfo'
@@ -51,8 +50,6 @@ export default function Dashboard() {
         <MiniKpi label="Consumo / mes" value={data?.consumed_this_month} unit="kg" />
         <MiniKpi label="Ingresos / mes" value={data?.received_this_month} unit="kg" />
       </div>
-
-      <MonthlyTrendsCard />
 
       <TotalStockChartCard totalStock={data?.total_stock} />
 
@@ -228,25 +225,6 @@ function RangePicker({ value, onChange }: { value: DayRange; onChange: (v: DayRa
   )
 }
 
-function MonthlyTrendsCard() {
-  const { data, isLoading, isError } = useMonthlyHistory(6)
-
-  return (
-    <div className="chart-card">
-      <div className="chart-card__head">
-        <div className="kpi-card__eyebrow">Tendencia mensual</div>
-      </div>
-      {isLoading ? (
-        <ChartPlaceholder label="Cargando…" />
-      ) : isError ? (
-        <ChartPlaceholder label="Sin datos" />
-      ) : (
-        <MonthlyBarChart series={data?.series ?? []} />
-      )}
-    </div>
-  )
-}
-
 function TotalStockChartCard({ totalStock }: { totalStock?: number }) {
   const [days, setDays] = useState<DayRange>(30)
   const { data, isLoading, isError } = useTotalStockHistory(days)
@@ -259,12 +237,14 @@ function TotalStockChartCard({ totalStock }: { totalStock?: number }) {
     <div className="chart-card">
       <div className="chart-card__head">
         <div className="kpi-card__eyebrow">Stock total</div>
-        <div className="chart-card__corner">
-          <span className="chart-card__corner-value">{totalStock ?? '—'} kg</span>
-          <span className="chart-card__corner-label">Stock actual</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <RangePicker value={days} onChange={setDays} />
+          <div className="chart-card__corner">
+            <span className="chart-card__corner-value">{totalStock ?? '—'} kg</span>
+            <span className="chart-card__corner-label">Stock actual</span>
+          </div>
         </div>
       </div>
-      <RangePicker value={days} onChange={setDays} />
       {isLoading ? (
         <ChartPlaceholder label="Cargando…" />
       ) : isError ? (
@@ -299,21 +279,24 @@ function StockPerFamilyChartCard() {
     <div className="chart-card">
       <div className="chart-card__head">
         <div className="kpi-card__eyebrow">Stock por filamento</div>
-        <select
-          className="chart-card__corner-select"
-          value={selected}
-          onChange={(e) => setSelected(e.target.value)}
-          aria-label="Seleccionar filamento"
-        >
-          <option value="" disabled>Seleccionar filamento…</option>
-          {options.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.brand} {f.material} {f.brand_color_name}
-            </option>
-          ))}
-        </select>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <RangePicker value={days} onChange={setDays} />
+          <select
+            className="chart-card__corner-select"
+            style={{ maxWidth: 160 }}
+            value={selected}
+            onChange={(e) => setSelected(e.target.value)}
+            aria-label="Seleccionar filamento"
+          >
+            <option value="" disabled>Filamento…</option>
+            {options.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.brand} {f.material} {f.brand_color_name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
-      <RangePicker value={days} onChange={setDays} />
       {!selected ? (
         <ChartPlaceholder label="Elegí un filamento" />
       ) : isLoading ? (
