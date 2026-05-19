@@ -5,8 +5,10 @@ import { useFamilyById, usePatchFamily } from '../../hooks/useFamilies'
 import { useMovements, useReceive, useConsume } from '../../hooks/useMovements'
 import { listBarcodes } from '../../api/barcode'
 import FamilyDeleteModal from '../../components/FamilyDeleteModal'
+import FamilyEditModal from '../../components/FamilyEditModal'
+import ManualAdjustModal from '../../components/ManualAdjustModal'
 import AlternativesList from '../../components/AlternativesList'
-import { DeleteIcon } from '../../components/icons'
+import { DeleteIcon, EditIcon } from '../../components/icons'
 import { VISUAL_COLORS } from '../../lib/visualColors'
 import type { FilamentFamily, NormalizedVisualColor } from '../../types'
 
@@ -20,6 +22,8 @@ export default function FamilyDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [showDelete, setShowDelete] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
+  const [showAdjust, setShowAdjust] = useState(false)
 
   // Staged edits — nothing commits until the user taps Guardar.
   const [pendingDelta, setPendingDelta] = useState(0)
@@ -209,6 +213,26 @@ export default function FamilyDetail() {
         )}
       </section>
 
+      <div className="detail-secondary-actions">
+        <button
+          type="button"
+          className="btn btn--ghost icon-btn-row"
+          onClick={() => setShowEdit(true)}
+          disabled={saving}
+        >
+          <EditIcon /> Editar detalles
+        </button>
+        <button
+          type="button"
+          className="btn btn--ghost"
+          onClick={() => setShowAdjust(true)}
+          disabled={saving || dirty}
+          title={dirty ? 'Guardá los cambios pendientes antes de hacer un ajuste' : 'Ajuste manual con motivo'}
+        >
+          Ajuste manual
+        </button>
+      </div>
+
       <button
         type="button"
         className="btn-eliminar"
@@ -236,6 +260,20 @@ export default function FamilyDetail() {
           family={family}
           onClose={() => setShowDelete(false)}
           onDeleted={() => navigate('/families')}
+        />
+      )}
+
+      {showEdit && (
+        <FamilyEditModal
+          family={family}
+          onClose={() => setShowEdit(false)}
+        />
+      )}
+
+      {showAdjust && (
+        <ManualAdjustModal
+          family={family}
+          onClose={() => setShowAdjust(false)}
         />
       )}
     </div>
