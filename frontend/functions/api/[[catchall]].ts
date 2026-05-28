@@ -9,6 +9,7 @@ import dashboard from './_lib/dashboard'
 import history from './_lib/history'
 import importer from './_lib/import'
 import admin from './_lib/admin'
+import feedback from './_lib/feedback'
 
 const app = new Hono<{ Bindings: Env }>()
 
@@ -21,5 +22,6 @@ app.route('/api/inventory/dashboard', dashboard)
 app.route('/api/inventory/history', history)
 app.route('/api/inventory/import', importer)
 app.route('/api/inventory/admin', admin)
+app.route('/api/feedback', feedback)
 
 export const onRequest = handle(app)

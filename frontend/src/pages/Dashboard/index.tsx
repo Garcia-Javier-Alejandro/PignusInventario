@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useDashboard } from '../../hooks/useDashboard'
 import { useFamilies } from '../../hooks/useFamilies'
 import { useTotalStockHistory, useFamilyStockHistory } from '../../hooks/useHistory'
@@ -7,9 +7,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import ImportModal from '../../components/ImportModal'
 import WipeAllModal from '../../components/WipeAllModal'
 import WipeMovementsModal from '../../components/WipeMovementsModal'
+import FeedbackModal from '../../components/FeedbackModal'
 import MiniLineChart from '../../components/MiniLineChart'
 import { clearInventoryCache } from '../../api/admin'
 import ColorDot from '../../components/ColorDot'
+import { BugIcon } from '../../components/icons'
 import { formatBuildLabel, forceAppUpdate } from '../../lib/buildInfo'
 import type { InventoryMovement } from '../../types'
 
@@ -21,10 +23,12 @@ const MOVEMENT_LABELS: Record<string, string> = {
 
 export default function Dashboard() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { data, isLoading, isError } = useDashboard()
   const [showImport, setShowImport] = useState(false)
   const [showWipe, setShowWipe] = useState(false)
   const [showWipeMovements, setShowWipeMovements] = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
   const qc = useQueryClient()
   const clearCache = useMutation({
     mutationFn: clearInventoryCache,
@@ -86,69 +90,87 @@ export default function Dashboard() {
         Build {formatBuildLabel()}
       </div>
 
-      <details className="debug-section">
-        <summary>Aux Debug Tools</summary>
-        {/* Inline styles override the cascade: PignusUI's .debug-body ships
-            as a horizontal row and an external-stylesheet override loses on
-            partial-cache states. See feedback_pignusui_override_collision. */}
-        <div
-          className="debug-body"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'stretch',
-            gap: 8,
-            paddingTop: 12,
-            marginTop: 0,
-          }}
+      <div className="debug-section-row">
+        <details className="debug-section">
+          <summary>Aux Debug Tools</summary>
+          {/* Inline styles override the cascade: PignusUI's .debug-body ships
+              as a horizontal row and an external-stylesheet override loses on
+              partial-cache states. See feedback_pignusui_override_collision. */}
+          <div
+            className="debug-body"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'stretch',
+              gap: 8,
+              paddingTop: 12,
+              marginTop: 0,
+            }}
+          >
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => setShowImport(true)}
+              style={{ width: '100%' }}
+            >
+              Importar inventario inicial
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={forceAppUpdate}
+              style={{ width: '100%' }}
+            >
+              Forzar actualización
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => clearCache.mutate()}
+              disabled={clearCache.isPending}
+              style={{ width: '100%' }}
+            >
+              {clearCache.isPending ? <span className="spinner" /> : 'Limpiar caché KV'}
+            </button>
+            <button
+              type="button"
+              className="btn btn--danger"
+              onClick={() => setShowWipeMovements(true)}
+              style={{ width: '100%' }}
+            >
+              Borrar movimientos
+            </button>
+            <button
+              type="button"
+              className="btn btn--danger"
+              onClick={() => setShowWipe(true)}
+              style={{ width: '100%' }}
+            >
+              Borrar todo el inventario
+            </button>
+          </div>
+        </details>
+
+        <button
+          type="button"
+          className="iconbtn"
+          onClick={() => setShowFeedback(true)}
+          aria-label="Reportar un problema o sugerir una mejora"
+          title="Reportar un problema o sugerir una mejora"
         >
-          <button
-            type="button"
-            className="btn btn--secondary"
-            onClick={() => setShowImport(true)}
-            style={{ width: '100%' }}
-          >
-            Importar inventario inicial
-          </button>
-          <button
-            type="button"
-            className="btn btn--secondary"
-            onClick={forceAppUpdate}
-            style={{ width: '100%' }}
-          >
-            Forzar actualización
-          </button>
-          <button
-            type="button"
-            className="btn btn--secondary"
-            onClick={() => clearCache.mutate()}
-            disabled={clearCache.isPending}
-            style={{ width: '100%' }}
-          >
-            {clearCache.isPending ? <span className="spinner" /> : 'Limpiar caché KV'}
-          </button>
-          <button
-            type="button"
-            className="btn btn--danger"
-            onClick={() => setShowWipeMovements(true)}
-            style={{ width: '100%' }}
-          >
-            Borrar movimientos
-          </button>
-          <button
-            type="button"
-            className="btn btn--danger"
-            onClick={() => setShowWipe(true)}
-            style={{ width: '100%' }}
-          >
-            Borrar todo el inventario
-          </button>
-        </div>
-      </details>
+          <BugIcon size={16} />
+        </button>
+      </div>
 
       {showImport && <ImportModal onClose={() => setShowImport(false)} />}
       {showWipe && <WipeAllModal onClose={() => setShowWipe(false)} />}
       {showWipeMovements && <WipeMovementsModal onClose={() => setShowWipeMovements(false)} />}
+      {showFeedback && (
+        <FeedbackModal
+          initialScreen={location.pathname}
+          onClose={() => setShowFeedback(false)}
+        />
+      )}
     </div>
   )
 }

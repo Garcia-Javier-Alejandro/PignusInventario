@@ -22,6 +22,7 @@ export type ApiErrorCode =
   | 'DUPLICATE_FAMILY'
   | 'AUTH_REQUIRED'
   | 'MOVEMENT_NOT_FOUND'
+  | 'VALIDATION_ERROR'
 
 export interface ApiError {
   error: ApiErrorCode

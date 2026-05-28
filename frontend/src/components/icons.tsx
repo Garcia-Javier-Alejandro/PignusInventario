@@ -24,6 +24,27 @@ export function EditIcon({ size = 14 }: IconProps) {
   )
 }
 
+export function BugIcon({ size = 16 }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 14a4 4 0 01-4-4V8a4 4 0 018 0v2a4 4 0 01-4 4z" />
+      <path d="M12 14v6" />
+      <path d="M8 16H4m0-4H2m2 8h4M16 16h4m0-4h2m-6 8h-4" />
+      <path d="M9 6a3 3 0 016 0" />
+    </svg>
+  )
+}
+
 export function DeleteIcon({ size = 14 }: IconProps) {
   return (
     <svg
