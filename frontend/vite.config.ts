@@ -15,6 +15,19 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'PignusLabs_Logo.png'],
+      workbox: {
+        // Don't intercept navigation requests — Cloudflare Pages serves index.html
+        // for all non-API routes, so this fallback is redundant and breaks iOS Safari
+        // when the precached entry is stale or missing.
+        navigateFallback: null,
+        // API calls must always go to the network, never the SW cache.
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly',
+          },
+        ],
+      },
       manifest: {
         name: 'PignusInventario',
         short_name: 'Inventario',
