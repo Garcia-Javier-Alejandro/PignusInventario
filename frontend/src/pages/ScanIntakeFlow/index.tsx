@@ -10,7 +10,7 @@ type Intent = 'receive' | 'consume'
 
 export default function ScanIntakeFlow() {
   const [step, setStep] = useState<Step>('scan')
-  const [intent, setIntent] = useState<Intent>('receive')
+  const [intent, setIntent] = useState<Intent>('consume')
   const [manual, setManual] = useState('')
   const [family, setFamily] = useState<FilamentFamily | null>(null)
   const [qty, setQty] = useState(1)
