@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(dir C:devgitPignusLabsPignusInventario *)",
+      "PowerShell(ls *)",
+      "PowerShell(Get-ChildItem \"C:\\\\dev\\\\git\\\\PignusLabs\\\\PignusInventario\\\\frontend\" -Recurse -Directory | Where-Object { $_.Name -ne \"node_modules\" } | Select-Object FullName | Sort-Object FullName)",
+      "Bash(npx tsc *)",
+      "Bash(npx wrangler *)"
+    ]
+  }
+}

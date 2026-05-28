@@ -11,7 +11,6 @@ import FeedbackModal from '../../components/FeedbackModal'
 import MiniLineChart from '../../components/MiniLineChart'
 import { clearInventoryCache } from '../../api/admin'
 import ColorDot from '../../components/ColorDot'
-import { BugIcon } from '../../components/icons'
 import { formatBuildLabel, forceAppUpdate } from '../../lib/buildInfo'
 import type { InventoryMovement } from '../../types'
 
@@ -153,12 +152,10 @@ export default function Dashboard() {
 
         <button
           type="button"
-          className="iconbtn"
+          className="btn btn--secondary debug-feedback-btn"
           onClick={() => setShowFeedback(true)}
-          aria-label="Reportar un problema o sugerir una mejora"
-          title="Reportar un problema o sugerir una mejora"
         >
-          <BugIcon size={16} />
+          Reportar un problema
         </button>
       </div>
 
