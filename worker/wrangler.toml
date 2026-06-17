@@ -10,6 +10,7 @@ crons = ["0 12 1 * *"]
 binding = "DB"
 database_name = "pignus-inventario-db"
 database_id = "a54a3364-529c-48c7-ad4e-f9c5afc5c04e"
+migrations_dir = "../migrations"
 
 # Recipients are a plain env var — update here and redeploy to change the list.
 # RESEND_API_KEY is a secret: wrangler secret put RESEND_API_KEY
