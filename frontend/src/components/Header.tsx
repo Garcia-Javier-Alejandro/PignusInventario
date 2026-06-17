@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import DomainChip from './DomainChip'
+import FeedbackModal from './FeedbackModal'
 
 function initialsFromEmail(email: string): string {
   const local = email.split('@')[0]
@@ -17,6 +19,8 @@ interface Identity {
 
 export default function Header() {
   const [identity, setIdentity] = useState<Identity | null>(null)
+  const [showFeedback, setShowFeedback] = useState(false)
+  const location = useLocation()
 
   useEffect(() => {
     let cancelled = false
@@ -31,6 +35,7 @@ export default function Header() {
   }, [])
 
   return (
+    <>
     <header className="header">
       <div className="header__brand">
         <a
@@ -75,6 +80,20 @@ export default function Header() {
       </nav>
 
       <div className="header__end">
+        <button
+          className="iconbtn"
+          type="button"
+          title="Reportar un problema"
+          aria-label="Reportar un problema"
+          onClick={() => setShowFeedback(true)}
+        >
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9 7a3 3 0 0 1 6 0v9a3 3 0 0 1-6 0z"/>
+            <path d="M9 7 6 4M15 7l3-3"/>
+            <path d="M6 11H3M21 11h-3M6 15H3M21 15h-3"/>
+            <line x1="12" y1="7" x2="12" y2="16"/>
+          </svg>
+        </button>
         {identity && (
           <button className="header__avatar" title={identity.email} type="button">
             {identity.initials}
@@ -82,5 +101,12 @@ export default function Header() {
         )}
       </div>
     </header>
+    {showFeedback && (
+      <FeedbackModal
+        initialScreen={location.pathname}
+        onClose={() => setShowFeedback(false)}
+      />
+    )}
+    </>
   )
 }

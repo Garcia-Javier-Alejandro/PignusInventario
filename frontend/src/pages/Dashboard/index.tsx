@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useDashboard } from '../../hooks/useDashboard'
 import { useFamilies } from '../../hooks/useFamilies'
 import { useTotalStockHistory, useFamilyStockHistory } from '../../hooks/useHistory'
@@ -7,7 +7,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import ImportModal from '../../components/ImportModal'
 import WipeAllModal from '../../components/WipeAllModal'
 import WipeMovementsModal from '../../components/WipeMovementsModal'
-import FeedbackModal from '../../components/FeedbackModal'
 import MiniLineChart from '../../components/MiniLineChart'
 import { clearInventoryCache } from '../../api/admin'
 import ColorDot from '../../components/ColorDot'
@@ -22,12 +21,10 @@ const MOVEMENT_LABELS: Record<string, string> = {
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const location = useLocation()
   const { data, isLoading, isError } = useDashboard()
   const [showImport, setShowImport] = useState(false)
   const [showWipe, setShowWipe] = useState(false)
   const [showWipeMovements, setShowWipeMovements] = useState(false)
-  const [showFeedback, setShowFeedback] = useState(false)
   const qc = useQueryClient()
   const clearCache = useMutation({
     mutationFn: clearInventoryCache,
@@ -150,24 +147,11 @@ export default function Dashboard() {
           </div>
         </details>
 
-        <button
-          type="button"
-          className="btn btn--secondary debug-feedback-btn"
-          onClick={() => setShowFeedback(true)}
-        >
-          Reportar un problema
-        </button>
       </div>
 
       {showImport && <ImportModal onClose={() => setShowImport(false)} />}
       {showWipe && <WipeAllModal onClose={() => setShowWipe(false)} />}
       {showWipeMovements && <WipeMovementsModal onClose={() => setShowWipeMovements(false)} />}
-      {showFeedback && (
-        <FeedbackModal
-          initialScreen={location.pathname}
-          onClose={() => setShowFeedback(false)}
-        />
-      )}
     </div>
   )
 }
