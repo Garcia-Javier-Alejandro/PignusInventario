@@ -564,29 +564,6 @@
   text-decoration: underline;
 }
 
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 200;
-  display: flex;
-  align-items: flex-end;
-}
-
-.modal {
-  width: 100%;
-  background: var(--card);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  padding: var(--space-4);
-  padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.modal--tall {
-  max-height: 90vh;
-}
 
 .modal-header {
   display: flex;

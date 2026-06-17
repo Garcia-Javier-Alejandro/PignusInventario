@@ -64,7 +64,7 @@ export default function FeedbackModal({ initialScreen, onClose }: Props) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay modal-overlay--centered" onClick={onClose}>
       <div className="modal modal--tall" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <span className="modal-title">
