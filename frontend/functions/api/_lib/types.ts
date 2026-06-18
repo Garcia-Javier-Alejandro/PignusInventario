@@ -1,6 +1,7 @@
 export interface Env {
   DB: D1Database
   CACHE: KVNamespace
+  RESEND_API_KEY: string
 }
 
 export interface FamilyRow {
