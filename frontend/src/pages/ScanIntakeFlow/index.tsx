@@ -50,7 +50,7 @@ export default function ScanIntakeFlow() {
         setFamily(result.filament_family)
         setQty(1)
         setStep('confirm')
-        setTimeout(() => qtyRef.current?.focus(), 50)
+        setTimeout(() => { qtyRef.current?.focus(); qtyRef.current?.select() }, 50)
       } else {
         setStep('register')
       }

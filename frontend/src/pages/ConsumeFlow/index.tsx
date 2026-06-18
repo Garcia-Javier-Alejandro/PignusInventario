@@ -33,7 +33,7 @@ export default function ConsumeFlow() {
         setFamily(result.filament_family)
         setQuantity(1)
         setStep('confirm')
-        setTimeout(() => quantityRef.current?.focus(), 50)
+        setTimeout(() => { quantityRef.current?.focus(); quantityRef.current?.select() }, 50)
       } else {
         setStep('register')
       }
