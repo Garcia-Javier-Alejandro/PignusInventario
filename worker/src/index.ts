@@ -25,8 +25,15 @@ export default {
 }
 
 async function sendDigest(env: Env): Promise<void> {
-  const now = new Date()
-  const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString()
+  // The digest runs on the 1st of the month and summarizes the PREVIOUS month.
+  // Boundaries are computed in Argentina time (UTC-3) so a movement recorded
+  // late on the last day of the month stays in that month, not the next one.
+  const artOffsetMs = 3 * 60 * 60 * 1000
+  const nowArt = new Date(Date.now() - artOffsetMs)
+  const y = nowArt.getUTCFullYear()
+  const m = nowArt.getUTCMonth()
+  const periodStart = new Date(Date.UTC(y, m - 1, 1) + artOffsetMs).toISOString()
+  const periodEnd = new Date(Date.UTC(y, m, 1) + artOffsetMs).toISOString()
 
   const [lowStockResult, summaryResult] = await env.DB.batch([
     env.DB.prepare(`
@@ -44,18 +51,19 @@ async function sendDigest(env: Env): Promise<void> {
         COALESCE(SUM(p.current_quantity), 0) AS total_stock,
         COALESCE((
           SELECT SUM(-quantity_delta) FROM inventory_movements
-          WHERE movement_type = 'CONSUME_OPEN' AND created_at >= ?
+          WHERE movement_type = 'CONSUME_OPEN'
+            AND created_at >= ? AND created_at < ?
         ), 0) AS consumed_this_month,
         COALESCE((
           SELECT SUM(quantity_delta) FROM inventory_movements
           WHERE movement_type = 'RECEIVE_STOCK'
-            AND created_at >= ?
+            AND created_at >= ? AND created_at < ?
             AND (notes IS NULL OR notes != 'Importación inicial')
         ), 0) AS received_this_month
       FROM filament_families f
       LEFT JOIN inventory_projection p ON p.filament_family_id = f.id
       WHERE f.active = 1
-    `).bind(startOfMonth, startOfMonth),
+    `).bind(periodStart, periodEnd, periodStart, periodEnd),
   ])
 
   const lowStock = lowStockResult.results as LowStockRow[]
@@ -66,7 +74,7 @@ async function sendDigest(env: Env): Promise<void> {
     .map((e) => e.trim())
     .filter(Boolean)
 
-  const monthLabel = now.toLocaleDateString('es-AR', {
+  const monthLabel = new Date(periodStart).toLocaleDateString('es-AR', {
     month: 'long',
     year: 'numeric',
     timeZone: 'America/Argentina/Buenos_Aires',
